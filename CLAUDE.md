@@ -49,7 +49,10 @@ src/
     transform/       #   pure normalisers, TransformRegistry, mapping interpreter
   providers/         # all provider knowledge; providers.module.ts builds the ProviderRegistry
     xbyte/           #   schemas (Zod), mappings (declarative + ownership table), handlers/, adapter, module
-  seed/              # raw-sources.ts (file -> collection map) + streaming seed
+  domain/            # one folder per target entity: *.repository.ts (versioned upserts), *.indexes.ts, *.module.ts
+  infra/             # the only place besides domain/ that may import mongodb (lint-enforced)
+    mongo/           #   MongoModule (one client; RAW_DB / TARGET_DB tokens), MongoSourceReader
+    seed/            #   raw-sources.ts (file -> collection map) + streaming seed
 scripts/             # ts-node entry points (seed-raw.ts); logic lives in src/ so it compiles into dist/
 data/raw/            # provider sample files (Extended JSON arrays)
 test/

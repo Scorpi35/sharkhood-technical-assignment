@@ -34,7 +34,7 @@ The provider is **xbyte**, a scraping vendor, and the platform scraped is **tala
 There are three collections and 578 documents in total. All files are
 [MongoDB Extended JSON](https://www.mongodb.com/docs/manual/reference/mongodb-extended-json/)
 arrays (`{"$oid": …}`, `{"$date": …}`), so they are parsed with `EJSON`, never
-`JSON.parse` (see `src/seed/seed-raw.ts`).
+`JSON.parse` (see `src/infra/seed/seed-raw.ts`).
 
 ### 1.1 Shared envelope (all 578 documents)
 
@@ -248,8 +248,14 @@ The target database is `TARGET_DB_NAME` (default `provider_domain`). Every
 document carries `platform: "talabat"` and a `source` sub-document:
 
 ```js
-source: { provider: "xbyte", rawCollection: "xbyte_raw_menus", rawId: ObjectId("…"), sourceTs: ISODate("…") }
+source: { provider: "xbyte", rawCollection: "xbyte_raw_menus", rawId: "6a60…", sourceTs: ISODate("…"), version: "2026-07-22T08:11:56.249Z|6a60…" }
 ```
+
+Two exceptions:
+- **`restaurants`** has one writer per raw collection, so it carries
+  `sources.<rawCollection>: {provider, rawId, sourceTs, version}`.
+- **`restaurant_areas`** carries `sources: [{provider, rawCollection}]` (an
+  `$addToSet`), because coverage is a union.
 
 Target documents contain **no run-specific values** (no `runId`, no wall-clock
 time). Run metadata lives only in `runs`, `run_batches` and `quarantine`. This
@@ -438,11 +444,21 @@ restaurant is listed (698/1,011 rows). Parsing would invent structure we can't
 verify, so the full name is kept and the branch identity comes from the outlet id.
 
 **"Last write by source version wins" vs merging snapshots.** Each target
-document records `source.sourceTs`, the raw `createdAt`. An upsert applies only
-when the incoming `sourceTs` is at least the stored one. An older raw document
-can therefore never overwrite newer data, and replaying the same raw data
-changes nothing. This matters in the sample: menus (2026-07-22) are 54 days
-older than listings (2026-09-14). Merging snapshots field by field was
+document records `source.version = sourceTs.toISOString() + "|" + rawId`, a
+string that sorts in the same total order as the pipeline's dedupe. The upsert
+filter matches only when the stored version is **≤** the incoming one (or
+absent). So:
+- a newer version is applied (**written**);
+- the same version is a no-op (**unchanged**, which is what a re-run produces);
+- an older version misses the filter, so the upsert hits the unique
+  natural-key index (E11000) and is counted **stale**.
+
+An older raw document can therefore never overwrite newer data, and replaying
+the same raw data changes nothing. Restaurants have two writers, so each keeps
+its own version under `sources.<rawCollection>.version`. The listing and menu
+writers never block each other, and their writes converge in either order. This
+matters in the sample: menus (2026-07-22) are 54 days older than listings
+(2026-09-14). Merging snapshots field by field was
 rejected. It needs per-field timestamps, and it makes the result depend on
 processing order. The one deliberate exception is coverage. Listing pages are
 unstable (all 18 re-fetched pages differ), so coverage is a **union** of
@@ -497,11 +513,12 @@ This document will be re-checked against the code at T13.
    name and URL go to `listing.name` / `listing.url`, separate from the menu's
    `name`. Every field now has exactly one owner (§4), so no `sourceTs`
    arbitration between the two sources is needed.
-3. **Items that disappear from a newer menu snapshot.** The source has no
-   availability field, so every item in a snapshot is `isAvailable: true`.
-   Proposal: an item missing from a newer snapshot of the same menu is set to
-   `isAvailable: false` rather than deleted. This keeps references stable and
-   re-runs idempotent.
+3. ~~**Items that disappear from a newer menu snapshot.**~~ **Resolved in T07.**
+   An item older than its restaurant's *stored* menu version is soft-retired
+   (`isAvailable: false`), never deleted. Availability is decided against the
+   stored menu version, both when items are written and in a reconcile step
+   after every batch. Out-of-order or concurrent batches therefore converge: a
+   late, older batch can't resurrect an item the newer menu dropped.
 4. **Resolving the address area to an area id.** 314/345 address strings match
    a `location_name` exactly. Resolving them would give a "located in" relation
    next to the "delivers to" coverage. It is not done for now, because names

@@ -2,7 +2,7 @@
  * xbyte handlers, end-to-end through the core runner, on trimmed real fixtures
  * (test/fixtures/xbyte). No database. Constructed variants of real docs are marked.
  */
-import type { Document } from 'mongodb';
+import type { FixtureDoc as Document } from '../../../test/support/fixtures';
 import { DomainRecord, PipelineResult, RawDocument, RecordOf, runPipeline } from '../../core';
 import { loadFixtureDocs, loadRawFixtures } from '../../../test/support/fixtures';
 import { RAW_COLLECTIONS } from './mappings';

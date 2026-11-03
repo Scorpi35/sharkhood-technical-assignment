@@ -5,8 +5,8 @@ import { AnyBulkWriteOperation, BSON, Db, Document, MongoClient, ObjectId } from
 import pino, { Logger } from 'pino';
 import { parser } from 'stream-json';
 import { streamArray } from 'stream-json/streamers/StreamArray';
-import { loadConfigOrExit } from '../config/load-config';
-import { buildPinoOptions } from '../logging/pino-options';
+import { loadConfigOrExit } from '../../config/load-config';
+import { buildPinoOptions } from '../../logging/pino-options';
 import { RAW_SOURCES, RawSource } from './raw-sources';
 
 export interface SeedOptions {

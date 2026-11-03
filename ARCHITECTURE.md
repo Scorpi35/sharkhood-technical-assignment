@@ -4,7 +4,7 @@ How the migration service is put together. For the data itself (source shapes,
 anomalies, the target model and the reasoning behind it), read
 **[docs/DATA_ANALYSIS.md](./docs/DATA_ANALYSIS.md)** first.
 
-> Status: T01–T06 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider). Sections marked
+> Status: T01–T07 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider, Mongo repositories). Sections marked
 > *planned* describe the design that later tickets implement.
 
 ## Components
@@ -34,7 +34,8 @@ flowchart LR
 | `src/core/**` | Provider-agnostic, pure logic and interfaces | Not `src/providers`, `src/domain`, `mongodb`, `bullmq` or `@nestjs/*` values (lint-enforced) |
 | `src/providers/**` | Per-provider knowledge: Zod schemas, declarative mappings, source handlers (xbyte, T06) | core, domain |
 | `src/domain/**` *(planned)* | Target collections, upsert writers, indexes (T07) | core |
-| `src/config`, `src/logging`, `src/seed` | Infrastructure | anything |
+| `src/infra/**` | Mongo client, SourceReader, raw seed (T02/T07) | core |
+| `src/config`, `src/logging` | Configuration and logging | anything |
 
 Transforms are pure. They don't call `Date.now()` or `Math.random()`, do no I/O
 and hold no module-level state, so the same raw document always maps to the same
