@@ -3,7 +3,7 @@
 This document is the reasoning behind the migration. It covers what the three
 provider samples actually contain, how they relate, what is wrong with them,
 the target model we map them into, and the trade-offs behind each decision.
-Code in T06 (mapping) and T07 (target writes) implements what is written here.
+The xbyte provider (`src/providers/xbyte`, T06) and the target repositories (`src/domain`, T07) implement it. A unit test (`src/docs-consistency.spec.ts`) checks that the indexes, quarantine reasons and counters named in these docs match the code.
 
 **Every number below is reproducible.** Seed the raw database (`npm run seed`),
 then run the profiler against it:
@@ -24,7 +24,7 @@ A few numbers differ from the summary in CLAUDE.md's *Data findings*. See
 5. [Indexes and why](#5-indexes-and-why)
 6. [Trade-offs](#6-trade-offs)
 7. [Scale assumptions](#7-scale-assumptions)
-8. [Open questions](#8-open-questions-for-t06t07)
+8. [Open questions](#8-open-questions)
 
 ---
 
@@ -205,7 +205,7 @@ Quarantine excerpts never include `endpoint` or `requests_url`.
 | Same restaurant in both areas | 1,011 rows reduce to 302 unique outlets; 161 appear in both areas | **dedupe** restaurants on outlet id. Coverage is M:N in `restaurant_areas`. |
 | Listing means "delivers to", not "located in" | URL slug ends with the listing area in only 15/1,011 rows. 698 end with a *different* known area, e.g. `…/648607/sla-restaurant-and-cafe-al-rowdah?aid=1468` listed under Al Zaab. | Model as coverage (`restaurant_areas`). Never derive a restaurant's location from the listing area or slug. |
 | Id only inside the URL | `/restaurant/{outletId}/{slug}?aid={areaId}`; 1,011/1,011 parse | **normalise**: parse the URL. An unparseable URL drops **that row only** (record-level `SCHEMA_INVALID` at `payload.results[i].restaurant_url`); the rest of the page is still written (0 in the sample). |
-| Country only in the URL | Segment `uae` on 1,011/1,011 listing URLs and 500/500 menu URLs | **normalise**: map country to currency (`uae` → `AED`). An unmapped country is a `DocumentError`, so **quarantine**; a currency is never guessed. |
+| Country only in the URL | Segment `uae` on 1,011/1,011 listing URLs and 500/500 menu URLs | **normalise**: listings store `country` as-is; menus map it to a currency (`uae` → `AED`, `COUNTRY_CURRENCY` in the provider mapping). A menu whose country has no currency is `SCHEMA_INVALID` and produces no records; a currency is never guessed. |
 | Names are not identities | 290 distinct names for 302 outlets; 9 names belong to several outlets, e.g. "Otantik Cafe & Restaurant" ×3 | Never key or dedupe on name |
 | Messy name text | Over 290 distinct names: 5 have leading or trailing whitespace and 6 double spaces. 4 contain non-ASCII: `Vasanta Bhavan، Madinat Zayed` (Arabic comma), `Awani – Middle Eastern Flavors` (en dash), `Adnoc Oasis Café`, `Hazzaa Speciality Café` | **normalise** whitespace only. Unicode punctuation and accents are kept as-is (§6). |
 
@@ -223,9 +223,9 @@ Quarantine excerpts never include `endpoint` or `requests_url`.
 | `rate` 0 means unrated | `rate` is int or float, 0–5. 3 restaurants have `rate` 0, all with `totalRatings` 0. | **normalise**: `rating.value = null` when `rate` is 0 |
 | `totalRatings` is capped | Exactly 1000 on **173/345** | **normalise**: `rating.count` keeps the number, and `rating.countIsLowerBound = true` when it equals 1000 |
 | `totalReviews` constant | 0 on 345/345 | **ignore** |
-| `deliveryFee` is a string | 7 distinct values incl. `"0"` (37) and `"1.99"` | **normalise** to `deliveryFeeMinor` (integer fils). `"0"` means free delivery, kept as 0. |
+| `deliveryFee` is a string | 7 distinct values incl. `"0"` (37) and `"1.99"` | **normalise** to `delivery.feeMinor` (integer fils). `"0"` means free delivery, kept as 0. |
 | `DeliveryTime` free text | 15 formats; `"30 mins"` single values (22); `"0 mins"` (1) | **normalise** to `{minMinutes, maxMinutes}` (a single value sets both). `"0 mins"` becomes `null` (unknown). |
-| `Minimum Order` 0 | 320/345 | Kept as `minimumOrderMinor: 0`. Here 0 is a real value meaning "no minimum", **unlike** ratings. |
+| `Minimum Order` 0 | 320/345 | Kept as `delivery.minimumOrderMinor: 0`. Here 0 is a real value meaning "no minimum", **unlike** ratings. |
 | Address is an area name | 84 distinct values; 314/345 equal a `location_name`; 1 empty | **normalise** to `address: {area, city}`, with an empty string becoming null. Not resolved to an area id (§8). |
 | `City` constant | `"Dubai"` on 345/345 | Kept as `address.city`. Consistent with the coordinates. |
 | Placeholder contact | `"00000-00000"` on 345/345 | **normalise** to `contact: null` |
@@ -236,7 +236,7 @@ Quarantine excerpts never include `endpoint` or `requests_url`.
 | Items in several categories | **2,118** items sit in more than one distinct category id (2,266 counting category *entries*, of which 1,473 involve Picks) | **dedupe**: one `menu_items` doc per item, with `categoryIds[]` (distinct). Membership order lives in `menus.categories[].itemIds`. |
 | Repeated item rows | 31,102 rows reduce to 28,773 unique `item_id`s; none shared across restaurants | **dedupe** on `(platform, restaurantExternalId, itemId)`. The key includes the restaurant anyway, so a future cross-restaurant id is safe. |
 | Float32 price noise | 811 prices, e.g. `50.80000076293945` | **normalise**: `priceMinor = Math.round(price * 100)` |
-| Zero prices | 1,985 item rows, 1,859 unique items | Kept as `priceMinor: 0`, counted as a data-quality warning in run stats (§6) |
+| Zero prices | 1,985 item rows, 1,859 unique items | Kept as `priceMinor: 0`, never dropped (§6). Not flagged per run; findable with `{priceMinor: 0}` (see README, Known gaps) |
 | Item `rating` 0 means unrated | 28,798 rows (92.6%) | **normalise**: `rating: null` when 0 |
 | Missing images and descriptions | `image: null` on 1,631; empty `description` on 2,071 | **normalise**: `imageUrl: null`; an empty description becomes `null` |
 
@@ -427,8 +427,8 @@ copies. Which provider wrote a document is recorded in `source.provider`.
 **Zero prices are kept, not dropped.** 1,985 item rows (1,859 unique items) cost 0. On a delivery
 platform that usually means "price set on options or variants". Dropping them
 would delete real menu items, and inventing a price is worse. They are stored
-as `priceMinor: 0` and counted as a data-quality warning in run stats, so the
-number stays visible.
+as `priceMinor: 0`. They are not flagged per run (a known gap), but stay
+findable with `menu_items.find({priceMinor: 0})`.
 
 **Rating 0 → `null`.** For items (92.6% are 0) and restaurants (3 with `rate` 0
 and 0 ratings), 0 means "no ratings yet", not "rated zero stars". Storing 0
@@ -497,16 +497,16 @@ loading a collection, or even a large batch, into memory:
   volume, and a lost Redis costs only the queue, never data.
 - **Progress lives in Mongo.** Each range has a `run_batches` row
   (`{runId, status}`). A killed worker (`docker compose kill worker`) leaves
-  its range `pending`/`running`, and it is retried. The idempotent upserts
+  its range `queued`/`active`, and it is retried. The idempotent upserts
   make the retry safe.
 
 ---
 
-## 8. Open questions (for T06/T07)
+## 8. Open questions
 
 These came up in profiling. The decision belongs to the implementing ticket;
 resolved ones are kept, struck through, for the record.
-This document will be re-checked against the code at T13.
+Re-checked against the code at T13.
 
 1. ~~**Ambiguous `categoryIds`.**~~ **Resolved in T06.** Real categories
    that share a `category_id` are merged into the first (its name and position
