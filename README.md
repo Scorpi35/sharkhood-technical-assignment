@@ -15,7 +15,7 @@ looks like and why the model is shaped this way). Then read
 Requires Docker only.
 
 ```bash
-docker compose up -d --build                   # mongo, redis, api (:3000), worker
+docker compose up -d --build --wait            # mongo, redis, api (:3000), worker; returns when healthy
 docker compose run --rm api npm run seed       # load the 3 sample files into provider_raw
 curl -XPOST localhost:3000/runs                # -> {"runId":"<id>","status":"dispatching"}
 curl localhost:3000/runs/<id>                  # status, per-source progress, counters, timings
