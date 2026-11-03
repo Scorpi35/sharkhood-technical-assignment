@@ -1,13 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppConfig } from '../config/app-config';
+import { HealthReport, HealthService } from './health.service';
 
-/** Liveness probe used by the compose healthcheck. Dependency readiness comes later. */
+/** GET /health: 200 with the report when every dependency is up, 503 with the same shape otherwise. */
 @Controller('health')
 export class HealthController {
-  constructor(private readonly config: AppConfig) {}
+  constructor(private readonly health: HealthService) {}
 
   @Get()
-  check(): { status: 'ok'; role: string; uptimeSec: number } {
-    return { status: 'ok', role: this.config.role, uptimeSec: Math.round(process.uptime()) };
+  check(): Promise<HealthReport> {
+    return this.health.check();
   }
 }

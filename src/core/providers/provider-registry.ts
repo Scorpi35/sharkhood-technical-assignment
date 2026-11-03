@@ -22,6 +22,7 @@ export class ProviderRegistryError extends Error {
  */
 export class ProviderRegistry {
   private readonly byCollection = new Map<string, ResolvedSource>();
+  private readonly byAlias = new Map<string, string>();
 
   constructor(adapters: readonly ProviderAdapter[]) {
     for (const adapter of adapters) {
@@ -39,6 +40,12 @@ export class ProviderRegistry {
           );
         }
         this.byCollection.set(handler.rawCollection, { adapter, handler });
+        const alias = handler.alias ?? handler.rawCollection;
+        const taken = this.byAlias.get(alias);
+        if (taken !== undefined && taken !== handler.rawCollection) {
+          throw new ProviderRegistryError(`source alias "${alias}" is used by both "${taken}" and "${handler.rawCollection}"`);
+        }
+        this.byAlias.set(alias, handler.rawCollection);
       }
     }
   }
@@ -55,5 +62,15 @@ export class ProviderRegistry {
 
   rawCollections(): string[] {
     return [...this.byCollection.keys()].sort();
+  }
+
+  /** Every alias the API accepts, sorted. */
+  aliases(): string[] {
+    return [...this.byAlias.keys()].sort();
+  }
+
+  /** The raw collection for an alias or a raw collection name; undefined if neither is known. */
+  rawCollectionFor(nameOrAlias: string): string | undefined {
+    return this.byCollection.has(nameOrAlias) ? nameOrAlias : this.byAlias.get(nameOrAlias);
   }
 }

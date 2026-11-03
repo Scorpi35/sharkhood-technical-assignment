@@ -1,15 +1,18 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { AppConfigModule } from './config/config.module';
 import type { AppConfig } from './config/app-config';
-import { RunsController } from './api/runs.controller';
+import { APP_FILTER } from '@nestjs/core';
+import { AllExceptionsFilter } from './common/all-exceptions.filter';
 import { DomainModule } from './domain/domain.module';
 import { HealthController } from './health/health.controller';
+import { HealthService } from './health/health.service';
 import { MongoModule } from './infra/mongo/mongo.module';
 import { LoggingModule } from './logging/logging.module';
 import { ProvidersModule } from './providers/providers.module';
 import { QueueModule } from './queue/queue.module';
 import { RunResumeModule } from './queue/run-resume.module';
 import { WorkerQueueModule } from './queue/worker-queue.module';
+import { RunsController } from './runs/runs.controller';
 import { RunsModule } from './runs/runs.module';
 import { WorkerHeartbeatService } from './worker/worker-heartbeat.service';
 
@@ -37,7 +40,10 @@ export class AppModule {
         ...(config.runsWorker ? [WorkerQueueModule] : []),
       ],
       controllers: config.runsHttp ? [HealthController, RunsController] : [],
-      providers: config.runsWorker ? [WorkerHeartbeatService] : [],
+      providers: [
+        ...(config.runsHttp ? [HealthService, { provide: APP_FILTER, useClass: AllExceptionsFilter }] : []),
+        ...(config.runsWorker ? [WorkerHeartbeatService] : []),
+      ],
     };
   }
 }

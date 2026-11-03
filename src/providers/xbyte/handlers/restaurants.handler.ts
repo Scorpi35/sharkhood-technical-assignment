@@ -20,6 +20,7 @@ interface Normalised {
 export function createRestaurantsHandler(batchSize?: number): SourceHandler<Valid, Normalised> {
   return {
     rawCollection: RAW_COLLECTIONS.restaurants,
+    alias: 'restaurants',
     batchSize,
     mapping: LISTING_MAPPING,
     transforms: XBYTE_TRANSFORMS,

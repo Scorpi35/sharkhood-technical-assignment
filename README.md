@@ -42,6 +42,37 @@ docker compose run --rm api npm run fingerprint    # sha256 per target collectio
 `written: 0, unchanged: N` (N = `transformed`), and `fingerprint` prints the same
 hashes before and after.
 
+## HTTP API
+
+Also available as [`requests.http`](./requests.http). Errors are JSON
+`{statusCode, error, message, runId?}` and never contain stack traces.
+
+```bash
+# start a run (all sources, or a subset), 202 {runId, status}
+curl -s -X POST localhost:3000/runs -H 'content-type: application/json' \
+  -d '{"collections": ["restaurants", "menus"], "limit": 100, "batchSize": 50}'
+
+# the run: status, per-source progress, counters, timings, errorSample (404 if unknown)
+curl -s localhost:3000/runs/<runId>
+
+# quarantined errors, cursor-paginated (limit default 50, max 200), optional ?reason=
+curl -s 'localhost:3000/runs/<runId>/errors?reason=PROVIDER_ERROR&limit=50'
+curl -s 'localhost:3000/runs/<runId>/errors?cursor=<nextCursor>'
+
+# re-enqueue work missing from Redis (202; 409 if the run already finished)
+curl -s -X POST localhost:3000/runs/<runId>/resume
+
+# readiness: Mongo raw + target and Redis, each with up|down and latency (503 if any is down)
+curl -s -w ' %{http_code}\n' localhost:3000/health
+```
+
+Body rules for `POST /runs`:
+- `collections`: any of `locations`, `restaurants`, `menus` (the registered source aliases);
+- `limit`: a positive integer;
+- `batchSize`: a positive integer up to 5000.
+
+Unknown keys are rejected. Invalid input gets a `400` listing each Zod issue's `path`.
+
 ## Resumability check (manual)
 
 1. Empty the target and keep the indexes:

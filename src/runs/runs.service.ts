@@ -30,6 +30,7 @@ import {
   zeroCounters,
 } from '../core';
 import { AppConfig } from '../config/app-config';
+import { InvalidRunFiltersError, RunNotFoundError } from './runs.errors';
 
 export class UnknownBatchError extends Error {
   override readonly name = 'UnknownBatchError';
@@ -42,15 +43,21 @@ export interface BatchRange {
 
 /** What a run migrates. Validated by RunsService.start. */
 export interface RunFilters {
-  /** Raw collections to migrate; default: every registered one. */
+  /** Sources to migrate, by alias ("menus") or raw collection name; default: every registered one. */
   readonly collections?: readonly string[];
   /** Cap on raw documents per collection (first N by _id). */
   readonly limit?: number;
+  /** Batch size for every selected source in this run (overrides the configured sizes). */
+  readonly batchSize?: number;
 }
 
-export class InvalidRunFiltersError extends Error {
-  override readonly name = 'InvalidRunFiltersError';
+/** The API's answer to "start a run". */
+export interface StartedRun {
+  readonly runId: string;
+  readonly status: RunStatus;
 }
+
+export { InvalidRunFiltersError };
 
 export interface SettleResult {
   /** True only for the call that settled the batch (counters were applied by it). */
@@ -95,19 +102,20 @@ export class RunsService {
    * validated config (and each handler's batch size), recorded on the run.
    */
   async start(filters: RunFilters = {}): Promise<Run> {
-    const rawCollections = filters.collections ?? this.registry.rawCollections();
-    const unknown = rawCollections.filter((c) => !this.registry.has(c));
-    if (rawCollections.length === 0 || unknown.length > 0) {
+    const requested = filters.collections ?? this.registry.rawCollections();
+    const unknown = requested.filter((c) => this.registry.rawCollectionFor(c) === undefined);
+    if (requested.length === 0 || unknown.length > 0) {
       throw new InvalidRunFiltersError(
-        unknown.length > 0 ? `unknown raw collection(s): ${unknown.join(', ')} (known: ${this.registry.rawCollections().join(', ')})` : 'no raw collections selected',
+        unknown.length > 0 ? `unknown collection(s): ${unknown.join(', ')} (known: ${this.registry.aliases().join(', ')})` : 'no collections selected',
       );
     }
-    if (filters.limit !== undefined && !(Number.isInteger(filters.limit) && filters.limit > 0)) {
-      throw new InvalidRunFiltersError(`limit must be a positive integer, got ${filters.limit}`);
+    const rawCollections = [...new Set(requested.map((c) => this.registry.rawCollectionFor(c)!))];
+    for (const [name, value] of [['limit', filters.limit], ['batchSize', filters.batchSize]] as const) {
+      if (value !== undefined && !(Number.isInteger(value) && value > 0)) throw new InvalidRunFiltersError(`${name} must be a positive integer, got ${value}`);
     }
     const config: RunConfig = {
       batchSizes: Object.fromEntries(
-        rawCollections.map((c) => [c, this.registry.resolve(c).handler.batchSize ?? this.appConfig.batch.defaultSize]),
+        rawCollections.map((c) => [c, filters.batchSize ?? this.registry.resolve(c).handler.batchSize ?? this.appConfig.batch.defaultSize]),
       ),
       concurrency: this.appConfig.jobs.concurrency,
       attempts: this.appConfig.jobs.attempts,
@@ -115,7 +123,11 @@ export class RunsService {
     const run = await this.createRun({
       rawCollections,
       config,
-      filters: { collections: [...rawCollections], ...(filters.limit === undefined ? {} : { limit: filters.limit }) },
+      filters: {
+        collections: [...rawCollections],
+        ...(filters.limit === undefined ? {} : { limit: filters.limit }),
+        ...(filters.batchSize === undefined ? {} : { batchSize: filters.batchSize }),
+      },
     });
     await this.startDispatch(run.runId);
     try {
@@ -148,6 +160,26 @@ export class RunsService {
 
   getRun(runId: string): Promise<Run | null> {
     return this.runs.get(runId);
+  }
+
+  /** start(), answered in the API's shape. */
+  async startRun(filters: RunFilters = {}): Promise<StartedRun> {
+    const run = await this.start(filters);
+    return { runId: run.runId, status: run.status };
+  }
+
+  /** The run, or RunNotFoundError (404). */
+  async getRunOrThrow(runId: string): Promise<Run> {
+    const run = await this.runs.get(runId);
+    if (!run) throw new RunNotFoundError(runId);
+    return run;
+  }
+
+  /** A page of a run's quarantined errors (errors and warnings), filterable by reason. 404 for an unknown run. */
+  async listErrors(runId: string, query: QuarantineQuery): Promise<{ items: QuarantinePage['entries']; nextCursor: string | null }> {
+    await this.getRunOrThrow(runId);
+    const page = await this.quarantineRepo.list(runId, query);
+    return { items: page.entries, nextCursor: page.nextCursor ?? null };
   }
 
   /** Non-terminal runs, oldest first: the candidates for resume on boot. */

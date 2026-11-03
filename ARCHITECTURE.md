@@ -4,7 +4,7 @@ How the migration service is put together. For the data itself (source shapes,
 anomalies, the target model and the reasoning behind it), read
 **[docs/DATA_ANALYSIS.md](./docs/DATA_ANALYSIS.md)** first.
 
-> Status: T01–T10 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider, Mongo repositories, runs, queue). Sections marked
+> Status: T01–T11 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider, Mongo repositories, runs, queue). Sections marked
 > *planned* describe the design that later tickets implement.
 
 ## Components
@@ -21,7 +21,7 @@ flowchart LR
 
 | Component | Runs as | Responsibility |
 |---|---|---|
-| `api` | `APP_ROLE=api` (HTTP, port 3000) | Health today. *Planned:* start runs, report progress, page through quarantine. |
+| `api` | `APP_ROLE=api` (HTTP, port 3000) | `POST /runs`, `GET /runs/:id`, `GET /runs/:id/errors`, `POST /runs/:id/resume`, `GET /health` (see README) |
 | `worker` | `APP_ROLE=worker` (no HTTP; one or more containers) | *Planned:* process `_id`-range jobs: read raw, transform, upsert target. A separate container, so `docker compose kill worker` can demonstrate resumability. |
 | seed | `npm run seed` | Streams the sample files into `provider_raw` (T02) |
 | Mongo | `mongo:7` | `provider_raw` (source, read-only by convention) and `provider_domain` (target + run metadata) |

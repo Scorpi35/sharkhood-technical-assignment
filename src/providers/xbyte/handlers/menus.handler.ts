@@ -38,6 +38,7 @@ const isFeatured = (name: string): boolean => FEATURED_CATEGORY_NAME_PATTERNS.so
 export function createMenusHandler(batchSize?: number): SourceHandler<Valid, Normalised> {
   return {
     rawCollection: RAW_COLLECTIONS.menus,
+    alias: 'menus',
     batchSize,
     mapping: MENUS_MAPPING,
     transforms: XBYTE_TRANSFORMS,

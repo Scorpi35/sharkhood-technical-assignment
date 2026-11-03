@@ -1,0 +1,37 @@
+### Requests for the 4 run endpoints + health (VS Code REST Client / JetBrains HTTP client).
+@base = http://localhost:3000
+
+### Health: 200 if Mongo (raw + target) and Redis answer within 1 s, else 503 with the same shape
+GET {{base}}/health
+
+### Start a run over every source (202 {runId, status})
+# @name startRun
+POST {{base}}/runs
+Content-Type: application/json
+
+{}
+
+### Start a run over some sources, capped and with a custom batch size
+POST {{base}}/runs
+Content-Type: application/json
+
+{ "collections": ["restaurants", "menus"], "limit": 100, "batchSize": 50 }
+
+### Invalid body -> 400 with Zod issue paths
+POST {{base}}/runs
+Content-Type: application/json
+
+{ "collections": ["pizza"], "limit": 0 }
+
+### The run: status, per-source progress, counters, timings, errorSample
+@runId = {{startRun.response.body.runId}}
+GET {{base}}/runs/{{runId}}
+
+### Quarantined errors (cursor-paginated; limit default 50, capped at 200)
+GET {{base}}/runs/{{runId}}/errors?limit=50
+
+### ...filtered by reason
+GET {{base}}/runs/{{runId}}/errors?reason=PROVIDER_ERROR&limit=200
+
+### Resume (re-enqueue work missing from Redis). 202, or 409 if already finished, 404 if unknown
+POST {{base}}/runs/{{runId}}/resume
