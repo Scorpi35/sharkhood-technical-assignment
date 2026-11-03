@@ -6,7 +6,7 @@ import { MenuItemModule } from './menu-item/menu-item.module';
 import { MenuModule } from './menu/menu.module';
 import { RestaurantAreaModule } from './restaurant-area/restaurant-area.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
-import { RunMetadataModule } from './run-metadata/run-metadata.indexes';
+import { RunMetadataModule } from './run-metadata/run-metadata.module';
 
 /** All target collections. Each entity module creates its indexes on init. Exposes TARGET_WRITER. */
 @Module({

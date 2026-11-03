@@ -1,28 +1,23 @@
-import { Inject, Injectable, Module, OnModuleInit } from '@nestjs/common';
-import type { Db, IndexDescription } from 'mongodb';
-import { TARGET_DB } from '../../infra/mongo/mongo.tokens';
-import { ensureIndexes } from '../shared/versioned-upsert';
+import type { IndexDescription } from 'mongodb';
 
-export const QUARANTINE = 'quarantine';
-export const RUN_BATCHES = 'run_batches';
 export const RUNS = 'runs';
+export const RUN_BATCHES = 'run_batches';
+export const QUARANTINE = 'quarantine';
 
-/** docs/DATA_ANALYSIS.md §5. Repositories for these collections come with the run orchestration tickets. */
+/** docs/DATA_ANALYSIS.md §5. `runs` is keyed by _id = runId and needs nothing else. */
 export const RUN_METADATA_INDEXES: Readonly<Record<string, readonly IndexDescription[]>> = {
-  // Paginate a run's rejects by _id range (_id > lastSeen) without skip.
-  [QUARANTINE]: [{ key: { runId: 1, _id: 1 }, name: 'runId__id' }],
-  // "Pending or failed batches of run R": progress, resume, retry after a worker is killed.
-  [RUN_BATCHES]: [{ key: { runId: 1, status: 1 }, name: 'runId_status' }],
+  [RUN_BATCHES]: [
+    // Identity of a batch: re-dispatching a range upserts into the same row.
+    { key: { runId: 1, batchKey: 1 }, name: 'runId_batchKey_unique', unique: true },
+    // "Pending or failed batches of run R": progress, resume, retry after a worker is killed.
+    { key: { runId: 1, status: 1 }, name: 'runId_status' },
+  ],
+  [QUARANTINE]: [
+    // Identity of an issue: a retried batch upserts into the same row instead of duplicating it.
+    { key: { runId: 1, rawCollection: 1, sourceId: 1, reason: 1, path: 1 }, name: 'runId_rawCollection_sourceId_reason_path_unique', unique: true },
+    // Paginate a run's entries by _id (_id > cursor) without skip.
+    { key: { runId: 1, _id: 1 }, name: 'runId__id' },
+    // The same, filtered by reason (?reason=PROVIDER_ERROR).
+    { key: { runId: 1, reason: 1, _id: 1 }, name: 'runId_reason__id' },
+  ],
 };
-
-@Injectable()
-export class RunMetadataIndexes implements OnModuleInit {
-  constructor(@Inject(TARGET_DB) private readonly db: Db) {}
-
-  async onModuleInit(): Promise<void> {
-    for (const [name, indexes] of Object.entries(RUN_METADATA_INDEXES)) await ensureIndexes(this.db.collection(name), indexes);
-  }
-}
-
-@Module({ providers: [RunMetadataIndexes] })
-export class RunMetadataModule {}
