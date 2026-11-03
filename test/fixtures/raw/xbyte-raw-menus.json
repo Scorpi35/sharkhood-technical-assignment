@@ -1,0 +1,75 @@
+[
+  {
+    "_id": {
+      "$oid": "6a607b4da08982f2261e3953"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/757815/bombay-box-oud-metha?aid=1280",
+    "params": {
+      "restaurant_url": "https://www.talabat.com/uae/restaurant/757815/bombay-box-oud-metha?aid=1280"
+    },
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/757815/bombay-box-oud-metha?aid=1280",
+        "request_time": "2026-07-22 01:11:55.080543",
+        "request_process_time": "1.7024662494659424",
+        "statusCode": 200
+      },
+      "results": [
+        {
+          "id": 687548,
+          "name": "Bombay Box",
+          "logo": "https://images.deliveryhero.io/image/talabat/restaurants/logo638684187837149645.jpg?width=180",
+          "latitude": "25.23018894217186",
+          "longitude": "55.31936521220774",
+          "rate": 4.4,
+          "totalReviews": 0,
+          "totalRatings": 48,
+          "deliveryFee": "9",
+          "DeliveryTime": "25-40 mins",
+          "Minimum Order": 0,
+          "Restaurant Address": "Oud Metha",
+          "City": "Dubai",
+          "Contact": "00000-00000",
+          "outletCode": 757815,
+          "category": []
+        }
+      ]
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-07-22T08:11:57.063Z"
+    },
+    "updatedAt": {
+      "$date": "2026-07-22T08:11:57.063Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a607b4ca08982f2261e3941"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/722864/everyday-roastery-coffee-dh-kitchen-business-bay-sol-avenue?aid=1280",
+    "params": {
+      "restaurant_url": "https://www.talabat.com/uae/restaurant/722864/everyday-roastery-coffee-dh-kitchen-business-bay-sol-avenue?aid=1280"
+    },
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/722864/everyday-roastery-coffee-dh-kitchen-business-bay-sol-avenue?aid=1280",
+        "request_time": "2026-07-22 01:11:54.856135",
+        "request_process_time": "1.1142938137054443",
+        "statusCode": 200
+      },
+      "Message": "This is not restaurant page (Talabat)."
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-07-22T08:11:56.249Z"
+    },
+    "updatedAt": {
+      "$date": "2026-07-22T08:11:56.249Z"
+    },
+    "__v": 0
+  }
+]

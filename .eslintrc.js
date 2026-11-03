@@ -13,7 +13,7 @@ module.exports = {
   ignorePatterns: ['.eslintrc.js', 'dist', 'node_modules'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     // Only src/config may read process.env; everything else injects AppConfig.
     'no-restricted-properties': [
       'error',
