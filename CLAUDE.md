@@ -46,6 +46,9 @@ src/
     pipeline/        #   contracts (types.ts), Stage, runPipeline, dedupe
     providers/       #   ProviderAdapter / SourceHandler, declarative FieldMapping, ProviderRegistry
     ports/           #   SourceReader, TargetWriter, Quarantine/Run/Batch repositories + Symbol DI tokens
+    transform/       #   pure normalisers, TransformRegistry, mapping interpreter
+  providers/         # all provider knowledge; providers.module.ts builds the ProviderRegistry
+    xbyte/           #   schemas (Zod), mappings (declarative + ownership table), handlers/, adapter, module
   seed/              # raw-sources.ts (file -> collection map) + streaming seed
 scripts/             # ts-node entry points (seed-raw.ts); logic lives in src/ so it compiles into dist/
 data/raw/            # provider sample files (Extended JSON arrays)

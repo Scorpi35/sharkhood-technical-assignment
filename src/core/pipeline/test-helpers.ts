@@ -30,11 +30,11 @@ export const raw = (id: string, body: unknown, collection = 'raw_things', source
 });
 
 /** externalId of an area record (dedupe returns the DomainRecord union). */
-export const areaIdOf = (r: DomainRecord): number => (r as RecordOf<'area'>).key.externalId;
+export const areaIdOf = (r: DomainRecord): number => Number((r as RecordOf<'area'>).key.externalId);
 
 export const areaRecord = (externalId: number, rawId: string, sourceTs: string, name = `area ${externalId}`): RecordOf<'area'> => ({
   entity: 'area',
-  key: { platform: 'p', externalId },
+  key: { platform: 'p', externalId: String(externalId) },
   data: { name, slug: `area-${externalId}` },
   version: { sourceTs: new Date(sourceTs), rawId },
   source: { provider: 'test', rawCollection: 'raw_things' },

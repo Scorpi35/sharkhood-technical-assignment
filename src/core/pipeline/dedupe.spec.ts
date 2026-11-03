@@ -42,7 +42,7 @@ describe('dedupe', () => {
 
   it('groups by key value, not by key property order', () => {
     const a = areaRecord(5, 'x', '2026-01-01T00:00:00Z');
-    const reordered = { ...a, key: { externalId: 5, platform: 'p' }, version: { ...a.version, rawId: 'y' } };
+    const reordered = { ...a, key: { externalId: '5', platform: 'p' }, version: { ...a.version, rawId: 'y' } };
     expect(dedupe([a, reordered]).winners).toHaveLength(1);
   });
 

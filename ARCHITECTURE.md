@@ -4,7 +4,7 @@ How the migration service is put together. For the data itself (source shapes,
 anomalies, the target model and the reasoning behind it), read
 **[docs/DATA_ANALYSIS.md](./docs/DATA_ANALYSIS.md)** first.
 
-> Status: T01 (bootstrap) and T02 (raw seed) are built. Sections marked
+> Status: T01–T06 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider). Sections marked
 > *planned* describe the design that later tickets implement.
 
 ## Components
@@ -32,7 +32,7 @@ flowchart LR
 | Path | Contains | May import |
 |---|---|---|
 | `src/core/**` | Provider-agnostic, pure logic and interfaces | Not `src/providers`, `src/domain`, `mongodb`, `bullmq` or `@nestjs/*` values (lint-enforced) |
-| `src/providers/**` *(planned)* | Per-provider mapping, e.g. xbyte raw → domain (T06) | core, domain |
+| `src/providers/**` | Per-provider knowledge: Zod schemas, declarative mappings, source handlers (xbyte, T06) | core, domain |
 | `src/domain/**` *(planned)* | Target collections, upsert writers, indexes (T07) | core |
 | `src/config`, `src/logging`, `src/seed` | Infrastructure | anything |
 

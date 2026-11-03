@@ -10,7 +10,7 @@ const handler = (rawCollection: string): SourceHandler => ({
 });
 const adapter = (provider: string, ...collections: string[]): ProviderAdapter => ({
   provider,
-  platform: 'talabat',
+  platform: 'example',
   sources: collections.map(handler),
 });
 
