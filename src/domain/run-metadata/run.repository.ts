@@ -53,11 +53,22 @@ export class MongoRunRepository implements RunRepository {
     return r.modifiedCount === 1;
   }
 
-  async recordDispatch(runId: string, rawCollection: string, p: { cursor: string | null; batchesAdded: number; done: boolean }): Promise<void> {
+  async recordDispatch(
+    runId: string,
+    rawCollection: string,
+    p: { cursor: string | null; batchesAdded: number; done: boolean; dispatchedDocs?: number },
+  ): Promise<void> {
     const path = sourcePath(rawCollection);
     await this.collection.updateOne(
       { _id: runId },
-      { $set: { [`${path}.dispatchCursor`]: p.cursor, [`${path}.dispatchDone`]: p.done }, $inc: { [`${path}.batchesTotal`]: p.batchesAdded } },
+      {
+        $set: {
+          [`${path}.dispatchCursor`]: p.cursor,
+          [`${path}.dispatchDone`]: p.done,
+          ...(p.dispatchedDocs === undefined ? {} : { [`${path}.dispatchedDocs`]: p.dispatchedDocs }),
+        },
+        $inc: { [`${path}.batchesTotal`]: p.batchesAdded },
+      },
     );
   }
 

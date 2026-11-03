@@ -4,7 +4,7 @@ How the migration service is put together. For the data itself (source shapes,
 anomalies, the target model and the reasoning behind it), read
 **[docs/DATA_ANALYSIS.md](./docs/DATA_ANALYSIS.md)** first.
 
-> Status: T01–T08 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider, Mongo repositories, runs). Sections marked
+> Status: T01–T09 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider, Mongo repositories, runs, queue). Sections marked
 > *planned* describe the design that later tickets implement.
 
 ## Components
@@ -12,8 +12,8 @@ anomalies, the target model and the reasoning behind it), read
 ```mermaid
 flowchart LR
     files["data/raw/*.json<br/>(Extended JSON)"] -- "npm run seed<br/>(stream + upsert by _id)" --> raw[("Mongo<br/>provider_raw")]
-    api["api<br/>APP_ROLE=api"] -- "plan run: _id ranges (planned)" --> redis[("Redis<br/>BullMQ")]
-    redis -- "jobs: {runId, rawCollection, fromId, toId}" --> worker["worker(s)<br/>APP_ROLE=worker"]
+    api["api<br/>APP_ROLE=api"] -- "start run: dispatch job per source" --> redis[("Redis<br/>BullMQ")]
+    redis -- "batch jobs: {runId, rawCollection, fromId, toId, batchKey}" --> worker["worker(s)<br/>APP_ROLE=worker"]
     worker -- "cursor over _id range" --> raw
     worker -- "idempotent upserts" --> target[("Mongo<br/>provider_domain")]
     worker -- "runs / run_batches / quarantine" --> target
@@ -33,7 +33,7 @@ flowchart LR
 |---|---|---|
 | `src/core/**` | Provider-agnostic, pure logic and interfaces | Not `src/providers`, `src/domain`, `mongodb`, `bullmq` or `@nestjs/*` values (lint-enforced) |
 | `src/providers/**` | Per-provider knowledge: Zod schemas, declarative mappings, source handlers (xbyte, T06) | core, domain |
-| `src/domain/**` *(planned)* | Target collections, upsert writers, indexes (T07) | core |
+| `src/domain/**` | Target collections, versioned upserts, run metadata, indexes (T07/T08) | core |
 | `src/infra/**` | Mongo client, SourceReader, raw seed (T02/T07) | core |
 | `src/config`, `src/logging` | Configuration and logging | anything |
 
@@ -100,6 +100,61 @@ Invariant: `written + unchanged + stale = transformed`.
 - **Quarantine.** Entries are upserted on their identity, so a retried batch
   never duplicates them. The first occurrence is kept. They are paginated by
   `_id` cursor and can be filtered by reason or severity.
+
+## Queue (BullMQ)
+
+| Queue | Job | Data |
+|---|---|---|
+| `factory-dispatch` | one per (run, raw collection), id `dispatch__<runId>__<rawCollection>` | `{runId, rawCollection}` |
+| `factory-batch` | one per `_id` range, id `batch__<runId>__<batchKey>` | `{runId, rawCollection, fromId, toId, batchKey}`: a range, never documents |
+| `factory-dead-letter` | one per exhausted batch, id `dead__<runId>__<batchKey>` | `{runId, batchKey, error, stack}` |
+
+Job ids are deterministic, so BullMQ ignores a duplicate `add()` and
+re-dispatching never double-enqueues. BullMQ 6 rejects `:` in custom ids, so
+the `:` of a batch key becomes `__`.
+
+```mermaid
+sequenceDiagram
+    participant A as api (RunsService.start)
+    participant D as dispatch worker
+    participant B as batch workers (WORKER_CONCURRENCY)
+    participant M as Mongo
+    A->>M: create run (pending -> dispatching)
+    A->>D: one dispatch job per source
+    loop each page of batchSize _ids (resumes after dispatchCursor)
+        D->>M: upsert run_batches row (queued)
+        D->>B: add batch job (deterministic id)
+        D->>M: $set dispatchCursor, $inc batchesTotal (new rows only)
+    end
+    D->>M: dispatchDone (the last source moves the run to running)
+    B->>M: readRange, runPipeline, upsert, quarantine, completeBatch
+    Note over B,M: completeBatch finalises the run when every batch is settled
+```
+
+- **Dispatcher.** It pages a collection with `scanIds` and resumes after the
+  run's `dispatchCursor`. The cursor only moves **after** the batch job is
+  enqueued, so a crash can never skip a range. Filters: `collections` selects
+  the handlers, and `limit` caps the documents per collection (tracked as
+  `dispatchedDocs`, so it survives restarts).
+- **Batch worker.** Document problems never throw; they are quarantined.
+  Infrastructure errors (Mongo, Redis) propagate, so BullMQ retries with
+  `attempts: JOB_ATTEMPTS` and exponential backoff from `JOB_BACKOFF_MS`.
+  Writes are idempotent, so a retry after a partial attempt is safe. A wiring
+  bug (unknown handler or batch) throws `UnrecoverableError`, because retrying
+  can't help. Every log line binds `runId`, `jobId` and `batchKey`.
+- **Dead letter.** In the worker's `failed` event, after the last attempt (or
+  an unrecoverable error), the batch goes to `factory-dead-letter`, is marked
+  `dead`, `$inc`s `batchesDead`, records `lastError` on the run and runs the
+  finalisation check. The run ends `completed_with_errors`. A dispatch job that
+  fails permanently fails the run.
+- **Killed workers.** Stall recovery is set explicitly in
+  `src/queue/queue.constants.ts`. A dead worker's lock expires after
+  `lockDuration` (30 s). Within `stalledInterval` (15 s), a live worker moves
+  the job back to waiting. A job that stalls more than `maxStalledCount` (2)
+  times is failed into the dead-letter path.
+- **Config.** `WORKER_CONCURRENCY`, `JOB_ATTEMPTS`, `JOB_BACKOFF_MS` and the
+  batch sizes come only from validated config. They are recorded on each run
+  (`config`).
 
 ## Key properties
 
