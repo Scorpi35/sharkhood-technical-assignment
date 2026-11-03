@@ -9,6 +9,7 @@ import { MONGO_CLIENT } from '../../src/infra/mongo/mongo.tokens';
 import { LoggingModule } from '../../src/logging/logging.module';
 import { ProvidersModule } from '../../src/providers/providers.module';
 import { QueueModule } from '../../src/queue/queue.module';
+import { RunResumeModule } from '../../src/queue/run-resume.module';
 import { WorkerQueueModule } from '../../src/queue/worker-queue.module';
 import { RunsModule } from '../../src/runs/runs.module';
 import { connectTestClient } from './mongo';
@@ -83,6 +84,14 @@ export const bootWorker = (mongoUri: string, targetDbName: string, opts: Omit<Bo
     ...opts,
     env: { REDIS_URL: opts.redisUrl, ...opts.env },
     imports: [LoggingModule, DomainModule, ProvidersModule, RunsModule, QueueModule, WorkerQueueModule],
+  });
+
+/** The api process: queues, RunsService and RunResumer, but no BullMQ workers (enqueued work waits for a worker). */
+export const bootProducer = (mongoUri: string, targetDbName: string, opts: Omit<BootOptions, 'imports'> & { redisUrl: string }) =>
+  boot(mongoUri, targetDbName, {
+    ...opts,
+    env: { REDIS_URL: opts.redisUrl, ...opts.env },
+    imports: [LoggingModule, DomainModule, ProvidersModule, RunsModule, QueueModule, RunResumeModule],
   });
 
 /** A manually advanced clock for deterministic timings. */

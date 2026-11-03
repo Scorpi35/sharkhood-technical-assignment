@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
+  Batch,
   BATCH_REPOSITORY,
   batchKeyOf,
   BatchRepository,
@@ -147,6 +148,16 @@ export class RunsService {
 
   getRun(runId: string): Promise<Run | null> {
     return this.runs.get(runId);
+  }
+
+  /** Non-terminal runs, oldest first: the candidates for resume on boot. */
+  listResumableRunIds(limit = 100): Promise<string[]> {
+    return this.runs.listIdsByStatus(['pending', 'dispatching', 'running'], limit);
+  }
+
+  /** A page of a run's batches in one status (keyset-paginated by batchKey). */
+  listBatches(runId: string, status: BatchStatus, page: { afterKey?: string; limit: number }): Promise<Batch[]> {
+    return this.batches.listByStatus(runId, status, page);
   }
 
   async startDispatch(runId: string): Promise<boolean> {

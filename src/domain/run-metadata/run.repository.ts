@@ -45,6 +45,15 @@ export class MongoRunRepository implements RunRepository {
     return { runId: _id, ...rest };
   }
 
+  async listIdsByStatus(statuses: readonly RunStatus[], limit: number): Promise<string[]> {
+    const docs = await this.collection
+      .find({ status: { $in: [...statuses] } }, { projection: { _id: 1 } })
+      .sort({ 'timings.createdAt': 1 })
+      .limit(limit)
+      .toArray();
+    return docs.map((d) => d._id);
+  }
+
   async transition(runId: string, from: readonly RunStatus[], to: RunStatus, timings: Partial<RunTimings> = {}, lastError?: string): Promise<boolean> {
     const r = await this.collection.updateOne(
       { _id: runId, status: { $in: [...from] } },

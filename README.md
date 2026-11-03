@@ -31,6 +31,32 @@ Without Docker for the app (needs `MONGO_URI` / `REDIS_URL`, e.g. from `.env`): 
 
 Configuration is validated at startup and the process exits on invalid values. See `.env.example`.
 
+## Run a migration
+
+```bash
+docker compose run --rm api npm run migrate        # starts a run, waits, prints counters
+docker compose run --rm api npm run fingerprint    # sha256 per target collection
+```
+
+**Idempotency, observably:** run `migrate` twice. The second run reports
+`written: 0, unchanged: N` (N = `transformed`), and `fingerprint` prints the same
+hashes before and after.
+
+## Resumability check (manual)
+
+1. Empty the target and keep the indexes:
+   `docker compose exec mongo mongosh provider_domain --eval 'for (const c of ["areas","restaurants","restaurant_areas","menus","menu_items"]) db.getCollection(c).deleteMany({})'`
+2. Start a run with small menu batches, so it lasts longer, and kill the worker straight away:
+   `docker compose run --rm -e BATCH_SIZE_MENUS=5 api npm run migrate -- --no-wait && docker compose kill worker`
+3. Check that the run is mid-flight: `db.run_batches.aggregate([{$match:{runId:"<id>"}},{$group:{_id:"$status",n:{$sum:1}}}])`, then note the completed batches' `attempts`.
+4. `docker compose start worker`. Within about 45 s (lock expiry + stall check), the run completes.
+5. Verify:
+   - completed batches still have the same `attempts`;
+   - only the batches that were active at the kill show `attempts: 2`;
+   - `npm run fingerprint` equals a clean run's.
+
+   If Redis was lost, `POST /runs/<id>/resume` (or a worker restart) re-enqueues the missing work.
+
 ## Documentation
 
 - **[docs/DATA_ANALYSIS.md](./docs/DATA_ANALYSIS.md)**: source shapes, relationships, anomalies, target model, indexes and trade-offs. Start here.

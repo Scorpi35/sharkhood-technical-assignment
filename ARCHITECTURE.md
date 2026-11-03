@@ -4,7 +4,7 @@ How the migration service is put together. For the data itself (source shapes,
 anomalies, the target model and the reasoning behind it), read
 **[docs/DATA_ANALYSIS.md](./docs/DATA_ANALYSIS.md)** first.
 
-> Status: T01–T09 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider, Mongo repositories, runs, queue). Sections marked
+> Status: T01–T10 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider, Mongo repositories, runs, queue). Sections marked
 > *planned* describe the design that later tickets implement.
 
 ## Components
@@ -155,6 +155,17 @@ sequenceDiagram
 - **Config.** `WORKER_CONCURRENCY`, `JOB_ATTEMPTS`, `JOB_BACKOFF_MS` and the
   batch sizes come only from validated config. They are recorded on each run
   (`config`).
+
+## Why a crash at each point is safe
+
+| Crash point | Why it is safe |
+|---|---|
+| **Mid-read** (batch reading its `_id` range) | Nothing was written yet. The job's lock expires, the stall checker requeues it, and the range is re-read from Mongo (ranges are stable). |
+| **After upsert, before `completeBatch`** | Upserts are idempotent (natural key + version guard), so the retry rewrites the same values (`unchanged`). Counters are applied only by the call that settles the batch, so nothing is double counted. |
+| **Mid-dispatch** | Each page is: batch row upsert → enqueue with a deterministic job id → move `dispatchCursor`. A retry resumes after the cursor, and re-registering or re-enqueueing a page is a no-op. |
+| **Worker killed** (`docker compose kill worker`) | Its active jobs stall. After `lockDuration` + `stalledInterval` they are requeued. Completed batches are settled in `run_batches` and are skipped. |
+| **Redis lost state** | Resume on boot (and `POST /runs/:id/resume`) re-enqueues dispatch jobs and unsettled batches whose job is missing or dead. Live jobs are never touched. |
+| **Before finalisation** | Finalisation recomputes totals from `run_batches` and is re-attempted on every settle, on dispatch completion, and on resume. |
 
 ## Key properties
 
