@@ -1,0 +1,78 @@
+x-app-env: &app-env
+  NODE_ENV: production
+  MONGO_URI: mongodb://mongo:27017
+  RAW_DB_NAME: provider_raw
+  TARGET_DB_NAME: provider_domain
+  REDIS_URL: redis://redis:6379
+  WORKER_CONCURRENCY: 4
+  JOB_ATTEMPTS: 5
+  JOB_BACKOFF_MS: 1000
+  BATCH_SIZE_DEFAULT: 200
+  BATCH_SIZE_MENUS: 25
+  ERROR_SAMPLE_SIZE: 20
+  LOG_LEVEL: info
+
+x-app-depends: &app-depends
+  mongo:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+
+services:
+  mongo:
+    image: mongo:7
+    ports: ['27017:27017']
+    volumes: ['mongo-data:/data/db']
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  redis:
+    image: redis:7
+    ports: ['6379:6379']
+    # AOF so queued jobs survive a redis restart.
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes: ['redis-data:/data']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    build: .
+    environment:
+      <<: *app-env
+      APP_ROLE: api
+      PORT: 3000
+    ports: ['3000:3000']
+    depends_on: *app-depends
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/health']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # Separate container so `docker compose kill worker` can demonstrate resumability.
+  worker:
+    build: .
+    environment:
+      <<: *app-env
+      APP_ROLE: worker
+    depends_on: *app-depends
+    stop_grace_period: 30s
+    healthcheck:
+      # Healthy while the heartbeat file is younger than 30s.
+      test: ['CMD-SHELL', 'test $$(( $$(date +%s) - $$(stat -c %Y /tmp/worker-heartbeat) )) -lt 30']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  mongo-data:
+  redis-data:
