@@ -23,11 +23,23 @@ module.exports = {
       'error',
       { object: 'process', property: 'env', message: 'Inject AppConfig instead of reading process.env.' },
     ],
+    // Persistence boundary (T07): only src/domain and src/infra talk to the driver.
+    '@typescript-eslint/no-restricted-imports': [
+      'error',
+      {
+        paths: [{ name: 'mongodb', message: 'Only src/domain and src/infra may import mongodb. Use a port.' }],
+        patterns: [{ group: ['mongodb/*'], message: 'Only src/domain and src/infra may import mongodb.' }],
+      },
+    ],
   },
   overrides: [
     {
       files: ['src/config/**/*.ts', 'test/**/*.ts', '**/*.spec.ts'],
       rules: { 'no-restricted-properties': 'off' },
+    },
+    {
+      files: ['src/domain/**/*.ts', 'src/infra/**/*.ts', 'test/**/*.ts'],
+      rules: { '@typescript-eslint/no-restricted-imports': 'off' },
     },
     {
       // Core import restriction (CLAUDE.md > Conventions): src/core is provider-agnostic

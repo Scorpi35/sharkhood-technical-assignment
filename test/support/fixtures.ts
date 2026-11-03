@@ -3,6 +3,9 @@ import { resolve } from 'node:path';
 import { BSON, Document, ObjectId } from 'mongodb';
 import type { RawDocument } from '../../src/core';
 
+/** A parsed fixture document (re-exported so src/ specs need not import the driver). */
+export type FixtureDoc = Document;
+
 const FIXTURES = resolve(__dirname, '../fixtures');
 
 /**

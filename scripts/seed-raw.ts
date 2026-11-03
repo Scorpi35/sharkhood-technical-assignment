@@ -1,8 +1,8 @@
 /**
  * ts-node entry point for `npm run seed` (local dev). The implementation lives in
- * src/seed so it is compiled into dist/ and runnable in the Docker image too.
+ * src/infra/seed so it is compiled into dist/ and runnable in the Docker image too.
  */
-import { main } from '../src/seed/seed-raw';
+import { main } from '../src/infra/seed/seed-raw';
 
 main().catch((err: unknown) => {
   const e = err instanceof Error ? err : new Error(String(err));

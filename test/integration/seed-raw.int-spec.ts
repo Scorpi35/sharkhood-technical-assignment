@@ -4,8 +4,8 @@ import { join, resolve } from 'node:path';
 import { Db, MongoClient, ObjectId } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import pino from 'pino';
-import { DEFAULT_SEED_OPTIONS, readEjsonArray, seedCollection, seedRaw } from '../../src/seed/seed-raw';
-import { RAW_SOURCES } from '../../src/seed/raw-sources';
+import { DEFAULT_SEED_OPTIONS, readEjsonArray, seedCollection, seedRaw } from '../../src/infra/seed/seed-raw';
+import { RAW_SOURCES } from '../../src/infra/seed/raw-sources';
 import { connectTestClient } from '../support/mongo';
 
 /** Same file -> collection map as production, pointed at the trimmed fixtures. */

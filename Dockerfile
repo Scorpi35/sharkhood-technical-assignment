@@ -35,7 +35,7 @@ COPY --chown=node:node package.json ./
 # The repo's `npm run seed` uses ts-node (a dev dep). In the image, point it at the
 # compiled script so `docker compose run --rm api npm run seed` works unchanged.
 # Seed data is not baked in; compose mounts ./data/raw read-only.
-RUN npm pkg set scripts.seed="node dist/seed/seed-raw.js"
+RUN npm pkg set scripts.seed="node dist/infra/seed/seed-raw.js"
 USER node
 EXPOSE 3000
 # APP_ROLE (api | worker | all) picks what this container runs.

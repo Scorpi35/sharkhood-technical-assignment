@@ -1,14 +1,20 @@
-import type { DomainRecord } from '../pipeline/types';
+import type { DomainRecord, EntityKind } from '../pipeline/types';
 
 export const TARGET_WRITER = Symbol('TargetWriter');
 
-export interface WriteResult {
+export interface EntityWriteResult {
   /** Inserted, or updated because the incoming record was newer and different. */
   readonly written: number;
   /** Same version and data already stored: a no-op (what a re-run should produce). */
   readonly unchanged: number;
   /** Rejected because the stored version is newer ("newest sourceTs wins"). */
   readonly stale: number;
+}
+
+export interface WriteResult extends EntityWriteResult {
+  /** Items soft-retired (isAvailable=false) because they left the newest menu snapshot. */
+  readonly retired?: number;
+  readonly byEntity?: Readonly<Record<EntityKind, EntityWriteResult>>;
 }
 
 /**
