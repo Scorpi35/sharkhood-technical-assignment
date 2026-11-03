@@ -30,4 +30,9 @@ docker compose up -d mongo redis && docker compose run --rm api npm run seed
 Without Docker for the app (needs `MONGO_URI` / `REDIS_URL`, e.g. from `.env`): `npm run seed`.
 
 Configuration is validated at startup and the process exits on invalid values. See `.env.example`.
-More detail for contributors is in [CLAUDE.md](./CLAUDE.md).
+
+## Documentation
+
+- **[docs/DATA_ANALYSIS.md](./docs/DATA_ANALYSIS.md)**: source shapes, relationships, anomalies, target model, indexes and trade-offs. Start here.
+- [ARCHITECTURE.md](./ARCHITECTURE.md): components, layers and key properties
+- [CLAUDE.md](./CLAUDE.md): conventions for contributors
