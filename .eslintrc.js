@@ -26,8 +26,9 @@ module.exports = {
       rules: { 'no-restricted-properties': 'off' },
     },
     {
-      // Core import restriction: src/core is pure domain logic and must stay free of
-      // infrastructure and framework dependencies. Adapters live outside src/core.
+      // Core import restriction (CLAUDE.md > Conventions): src/core is provider-agnostic
+      // and must not import providers, domain, mongodb, bullmq or @nestjs/* values.
+      // Type-only @nestjs imports are allowed for DI tokens.
       files: ['src/core/**/*.ts'],
       rules: {
         '@typescript-eslint/no-restricted-imports': [
@@ -36,11 +37,18 @@ module.exports = {
             paths: [
               { name: 'mongodb', message: 'src/core must not depend on the Mongo driver. Use a port interface.' },
               { name: 'bullmq', message: 'src/core must not depend on the queue. Use a port interface.' },
-              { name: 'ioredis', message: 'src/core must not depend on Redis.' },
             ],
             patterns: [
-              { group: ['@nestjs/*'], message: 'src/core must stay framework-agnostic.' },
+              {
+                group: ['@nestjs/*'],
+                allowTypeImports: true,
+                message: 'src/core may only import @nestjs types (for DI tokens), not values.',
+              },
               { group: ['mongodb/*', 'bullmq/*'], message: 'src/core must not depend on infrastructure.' },
+              {
+                group: ['**/providers', '**/providers/**', '**/domain', '**/domain/**'],
+                message: 'src/core is provider-agnostic: it must not import src/providers or src/domain.',
+              },
             ],
           },
         ],
