@@ -40,6 +40,12 @@ export const envSchema = z.object({
   JOB_ATTEMPTS: posInt().default(5),
   JOB_BACKOFF_MS: z.preprocess(blankAsUndefined, z.coerce.number().int().min(0).default(1000)),
 
+  // Stall recovery: how fast a killed worker's active jobs are picked up again
+  // (worst case ~ lock duration + stalled interval). See src/queue/queue.constants.ts.
+  WORKER_LOCK_DURATION_MS: z.preprocess(blankAsUndefined, z.coerce.number().int().min(1000).default(30_000)),
+  WORKER_STALLED_INTERVAL_MS: z.preprocess(blankAsUndefined, z.coerce.number().int().min(500).default(15_000)),
+  WORKER_MAX_STALLED_COUNT: z.preprocess(blankAsUndefined, z.coerce.number().int().min(0).default(2)),
+
   BATCH_SIZE_DEFAULT: posInt().default(200),
   // Menu documents are ~27 KB each, so they get a much smaller batch.
   BATCH_SIZE_MENUS: posInt().default(25),

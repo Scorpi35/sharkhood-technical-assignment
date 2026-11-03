@@ -1,3 +1,5 @@
+// Must stay the first import: loads .env before AppModule's import-time config validation.
+import './config/env-file';
 import 'reflect-metadata';
 import { Logger as NestLogger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';

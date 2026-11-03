@@ -88,6 +88,29 @@ Unknown keys are rejected. Invalid input gets a `400` listing each Zod issue's `
 
    If Redis was lost, `POST /runs/<id>/resume` (or a worker restart) re-enqueues the missing work.
 
+## Tests
+
+```bash
+npm test            # unit tests (no services needed)
+npm run test:int    # integration tests: needs only Docker
+```
+
+Integration tests start their own **Mongo** (mongodb-memory-server) and
+**Redis** (a `redis:7` container via testcontainers). In CI or compose, without
+Docker-in-Docker, set `REDIS_URL` and that server is used instead. Point it at a
+**disposable database index** (e.g. `REDIS_URL=redis://localhost:6379/15`):
+the tests `FLUSHDB` it, and never touch other databases.
+
+`test/integration/factory.int-spec.ts` is the end-to-end test. It boots the real
+app (`APP_ROLE=all`, batch size 3) and seeds the fixtures plus real duplicate
+snapshots. It then checks, over HTTP:
+1. a full run: exact counters, target counts, the "Picks"/"Bites" collision, a
+   float-noise price, and quarantine without the API key;
+2. a second run: `written: 0` and an identical fingerprint;
+3. a worker force-killed after 2 batches: a fresh worker finishes the run
+   through stall recovery, completed batches are not re-run, and the
+   fingerprint is the same.
+
 ## Documentation
 
 - **[docs/DATA_ANALYSIS.md](./docs/DATA_ANALYSIS.md)**: source shapes, relationships, anomalies, target model, indexes and trade-offs. Start here.

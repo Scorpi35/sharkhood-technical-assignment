@@ -1,0 +1,64 @@
+[
+  {
+    "_id": {
+      "$oid": "6aa77f462ba6464eb6cb9deb"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/",
+    "params": {
+      "domain": "talabat",
+      "areaSlug": "al-zaab",
+      "areaId": "1468",
+      "page_no": 0
+    },
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&areaSlug=al-zaab&areaId=1468&page_no=0",
+        "request_time": "2026-09-13 21:59:42.283617",
+        "request_process_time": "9.261037111282349",
+        "statusCode": 200
+      },
+      "Total Page": 227,
+      "results": [
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "Sla Restaurant and Cafe",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/648607/sla-restaurant-and-cafe-al-rowdah?aid=1468"
+        },
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "Fawal Abdun Restaurant",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/626436/fawal-abdun-restaurant-al-khalidiyah?aid=1468"
+        },
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "Subway, Blue Towers, Al Nahyan",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/33368/subway-blue-towers-al-nahyan?aid=1468"
+        },
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "Kebda El Falah",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/688984/kebda-el-falah-reem-island?aid=1468"
+        },
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "Shawerma Alpasha Gourmet",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/725672/shawerma-alpasha-gourmet-mushrif?aid=1468"
+        },
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "CRMBZ",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/700706/crmbz-al-hosn?aid=1468"
+        }
+      ]
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-09-14T04:59:50.961Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-14T04:59:50.961Z"
+    },
+    "__v": 0
+  }
+]

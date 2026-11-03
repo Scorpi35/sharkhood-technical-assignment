@@ -1,4 +1,5 @@
 import type { WorkerOptions } from 'bullmq';
+import { workerTuningFromEnv } from '../config/worker-tuning';
 
 export const DISPATCH_QUEUE_NAME = 'factory-dispatch';
 export const BATCH_QUEUE_NAME = 'factory-batch';
@@ -38,18 +39,17 @@ export const deadLetterJobId = (runId: string, batchKey: string): string => `dea
 
 /**
  * Stalled-job recovery: this is what resumes a killed worker's active job
- * (`docker compose kill worker`), so it is set explicitly rather than left to defaults.
+ * (`docker compose kill worker`), so it is set explicitly rather than left to
+ * BullMQ defaults. Values come from validated config (WORKER_LOCK_DURATION_MS,
+ * WORKER_STALLED_INTERVAL_MS, WORKER_MAX_STALLED_COUNT; defaults 30 s / 15 s / 2),
+ * read at import time because @Processor options are static.
+ *  - lockDuration: a worker holds a lock on each active job and renews it every
+ *    lockDuration / 2. If the worker dies, nobody renews it, and the lock expires.
+ *  - stalledInterval: every stalledInterval, workers look for active jobs whose
+ *    lock has expired and move them back to waiting, so another (or the restarted)
+ *    worker picks them up. Worst case, recovery takes lockDuration + stalledInterval.
+ *  - maxStalledCount: a job that stalls more than this many times is failed, so a
+ *    batch that crashes its worker every time (e.g. out of memory) cannot cycle
+ *    forever. It then goes through the normal dead-letter path.
  */
-export const WORKER_STALL_OPTIONS: Pick<WorkerOptions, 'lockDuration' | 'stalledInterval' | 'maxStalledCount'> = {
-  // A worker holds a lock on each active job and renews it every lockDuration / 2.
-  // If the worker dies, nobody renews it, and the lock expires after this long.
-  lockDuration: 30_000,
-  // Every stalledInterval, workers look for active jobs whose lock has expired and
-  // move them back to waiting, so another (or the restarted) worker picks them up.
-  // Worst case, a killed worker's batch resumes after lockDuration + stalledInterval.
-  stalledInterval: 15_000,
-  // A job that stalls more than this many times is failed, so a batch that crashes
-  // its worker every time (e.g. out of memory) cannot cycle forever. It then goes
-  // through the normal dead-letter path.
-  maxStalledCount: 2,
-};
+export const WORKER_STALL_OPTIONS: Pick<WorkerOptions, 'lockDuration' | 'stalledInterval' | 'maxStalledCount'> = workerTuningFromEnv();

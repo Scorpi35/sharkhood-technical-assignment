@@ -5,20 +5,20 @@ import { resolve } from 'node:path';
 import { MongoClient, ObjectId } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import pino from 'pino';
-import { GenericContainer, StartedTestContainer } from 'testcontainers';
 import { AppConfig } from '../../src/config/app-config';
 import { parseEnv } from '../../src/config/env.schema';
 import { MONGO_CLIENT } from '../../src/infra/mongo/mongo.tokens';
 import { RAW_SOURCES } from '../../src/infra/seed/raw-sources';
 import { DEFAULT_SEED_OPTIONS, seedRaw } from '../../src/infra/seed/seed-raw';
 import { connectTestClient } from '../support/mongo';
+import { startRedis, TestRedis } from '../support/redis';
 
 const ROOT = resolve(__dirname, '../..');
 const RAW_DB = 'provider_raw_api_test';
 
 describe('HTTP API (integration)', () => {
   let mongod: MongoMemoryServer;
-  let redis: StartedTestContainer;
+  let redis: TestRedis;
   let seedClient: MongoClient;
   let app: INestApplication;
   let base: string;
@@ -42,7 +42,7 @@ describe('HTTP API (integration)', () => {
   };
 
   beforeAll(async () => {
-    [mongod, redis] = await Promise.all([MongoMemoryServer.create(), new GenericContainer('redis:7').withExposedPorts(6379).start()]);
+    [mongod, redis] = await Promise.all([MongoMemoryServer.create(), startRedis()]);
     seedClient = await connectTestClient(mongod.getUri());
     await seedRaw(seedClient.db(RAW_DB), pino({ level: 'silent' }), RAW_SOURCES, { ...DEFAULT_SEED_OPTIONS, baseDir: ROOT });
 
@@ -51,7 +51,7 @@ describe('HTTP API (integration)', () => {
       NODE_ENV: 'test',
       APP_ROLE: 'all',
       MONGO_URI: mongod.getUri(),
-      REDIS_URL: `redis://${redis.getHost()}:${redis.getMappedPort(6379)}`,
+      REDIS_URL: redis.url,
       RAW_DB_NAME: RAW_DB,
       TARGET_DB_NAME: `target_${new ObjectId().toHexString()}`,
       LOG_LEVEL: 'silent',
@@ -86,8 +86,7 @@ describe('HTTP API (integration)', () => {
 
   it('GET /health -> 503 while Redis does not answer, 200 once it does again', async () => {
     // CLIENT PAUSE makes Redis stop answering every other client, like a stopped/hung server.
-    const paused = await redis.exec(['redis-cli', 'CLIENT', 'PAUSE', '3000', 'ALL']);
-    expect(paused.output.trim()).toBe('OK');
+    await redis.pause(3000);
     const down = await http('GET', '/health');
     expect(down.status).toBe(503);
     expect(down.body).toMatchObject({ status: 'down', redis: { status: 'down', error: 'no answer within 1000 ms' }, mongo: { raw: { status: 'up' } } });

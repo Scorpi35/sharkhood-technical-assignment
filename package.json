@@ -15,7 +15,7 @@
     "start:worker": "APP_ROLE=worker node dist/main.js",
     "lint": "eslint \"{src,test,scripts}/**/*.ts\"",
     "test": "jest",
-    "test:int": "jest --config ./test/jest-int.json --runInBand",
+    "test:int": "jest --config test/jest-int.config.ts --runInBand",
     "seed": "ts-node --transpile-only scripts/seed-raw.ts",
     "fingerprint": "ts-node --transpile-only scripts/target-fingerprint.ts",
     "migrate": "ts-node --transpile-only scripts/migrate.ts"

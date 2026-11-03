@@ -1,4 +1,5 @@
 import { AppConfig } from './app-config';
+import { loadEnvFile } from './env-file';
 import { validateEnvOrExit } from './env.schema';
 
 /**
@@ -7,10 +8,6 @@ import { validateEnvOrExit } from './env.schema';
  * a bad config exits before any module (and so any connection) is created.
  */
 export function loadConfigOrExit(envFile = '.env'): AppConfig {
-  try {
-    process.loadEnvFile(envFile);
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
-  }
+  loadEnvFile(envFile);
   return new AppConfig(validateEnvOrExit(process.env));
 }
