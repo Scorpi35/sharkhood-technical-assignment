@@ -6,6 +6,7 @@ import { HealthController } from './health/health.controller';
 import { MongoModule } from './infra/mongo/mongo.module';
 import { LoggingModule } from './logging/logging.module';
 import { ProvidersModule } from './providers/providers.module';
+import { RunsModule } from './runs/runs.module';
 import { WorkerHeartbeatService } from './worker/worker-heartbeat.service';
 
 /**
@@ -19,7 +20,7 @@ export class AppModule {
       module: AppModule,
       // ProvidersModule builds the ProviderRegistry, which validates every mapping at startup.
       // MongoModule connects once; DomainModule creates every index on init.
-      imports: [AppConfigModule, LoggingModule, MongoModule, DomainModule, ProvidersModule],
+      imports: [AppConfigModule, LoggingModule, MongoModule, DomainModule, ProvidersModule, RunsModule],
       controllers: config.runsHttp ? [HealthController] : [],
       providers: config.runsWorker ? [WorkerHeartbeatService] : [],
     };

@@ -385,7 +385,10 @@ erDiagram
 | `menu_items` | `{platform:1, restaurantExternalId:1, itemId:1}` **unique** | The natural key for idempotent item upserts |
 | `menu_items` | `(platform, restaurantExternalId)`, **no separate index** | "All items of a restaurant" is **covered by the unique key's prefix**, so a second index would only cost writes |
 | `menu_items` | `{categoryIds:1}` (multikey) | "Items in category C". An array field, so Mongo builds a multikey index. |
+| `quarantine` | `{runId:1, rawCollection:1, sourceId:1, reason:1, path:1}` **unique** | The identity of an issue: a retried batch upserts into the same row, so retries never duplicate entries |
 | `quarantine` | `{runId:1, _id:1}` | Paginate a run's rejects by `_id` range (`_id > lastSeen`) without `skip` |
+| `quarantine` | `{runId:1, reason:1, _id:1}` | The same pagination, filtered by reason (`?reason=PROVIDER_ERROR`) |
+| `run_batches` | `{runId:1, batchKey:1}` **unique** | The identity of a batch (`rawCollection:fromId:toId`): re-dispatching a range never duplicates it |
 | `run_batches` | `{runId:1, status:1}` | "Pending or failed batches of run R", for progress, resume and retry after a worker is killed |
 
 Every unique index doubles as the upsert filter, so a re-run touches the same
