@@ -492,7 +492,7 @@ loading a collection, or even a large batch, into memory:
   identical snapshots. If they grew in number, they would need a small batch
   size too.
 - **Redis holds only ranges, never documents.** BullMQ job payloads are
-  `{runId, rawCollection, fromId, toId}`: a few hundred bytes. Raw documents
+  `{runId, rawCollection, fromId, toId, batchKey}`: a few hundred bytes. Raw documents
   are read from Mongo by the worker, so Redis memory doesn't depend on data
   volume, and a lost Redis costs only the queue, never data.
 - **Progress lives in Mongo.** Each range has a `run_batches` row

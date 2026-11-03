@@ -16,6 +16,8 @@ export const zeroCounters = (): RunCounters => Object.fromEntries(COUNTER_NAMES.
 export interface RunSourceProgress {
   /** Last raw id handed to a batch; dispatch resumes after it. */
   readonly dispatchCursor: string | null;
+  /** Raw documents covered by registered batches so far (for the `limit` filter; survives restarts). */
+  readonly dispatchedDocs: number;
   readonly dispatchDone: boolean;
   readonly batchesTotal: number;
   readonly batchesDone: number;
@@ -64,8 +66,16 @@ export interface RunRepository {
   get(runId: string): Promise<Run | null>;
   /** Guarded status change: applies only if the current status is one of `from`. Returns whether it applied. */
   transition(runId: string, from: readonly RunStatus[], to: RunStatus, timings?: Partial<RunTimings>, lastError?: string): Promise<boolean>;
-  /** Record dispatch progress for one source: move the cursor, add newly created batches, maybe mark done. */
-  recordDispatch(runId: string, rawCollection: string, progress: { cursor: string | null; batchesAdded: number; done: boolean }): Promise<void>;
+  /**
+   * Record dispatch progress for one source: $set the cursor and dispatchedDocs
+   * (absolute values, so a retried page is idempotent), $inc batchesTotal by the
+   * newly created batches, maybe mark done.
+   */
+  recordDispatch(
+    runId: string,
+    rawCollection: string,
+    progress: { cursor: string | null; batchesAdded: number; done: boolean; dispatchedDocs?: number },
+  ): Promise<void>;
   /**
    * Live progress after a batch settled exactly once: $inc counters and the
    * source's batchesDone (or batchesDead), push errors into the capped sample.

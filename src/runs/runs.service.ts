@@ -8,6 +8,10 @@ import {
   BatchStatusCounts,
   CLOCK,
   Clock,
+  DISPATCH_QUEUE,
+  DispatchQueue,
+  PROVIDER_REGISTRY,
+  ProviderRegistry,
   QUARANTINE_REPOSITORY,
   QuarantineEntry,
   QuarantinePage,
@@ -35,6 +39,18 @@ export interface BatchRange {
   readonly toId: string;
 }
 
+/** What a run migrates. Validated by RunsService.start. */
+export interface RunFilters {
+  /** Raw collections to migrate; default: every registered one. */
+  readonly collections?: readonly string[];
+  /** Cap on raw documents per collection (first N by _id). */
+  readonly limit?: number;
+}
+
+export class InvalidRunFiltersError extends Error {
+  override readonly name = 'InvalidRunFiltersError';
+}
+
 export interface SettleResult {
   /** True only for the call that settled the batch (counters were applied by it). */
   readonly applied: boolean;
@@ -42,7 +58,7 @@ export interface SettleResult {
   readonly runStatus: RunStatus;
 }
 
-const emptySource = (): RunSourceProgress => ({ dispatchCursor: null, dispatchDone: false, batchesTotal: 0, batchesDone: 0, batchesDead: 0 });
+const emptySource = (): RunSourceProgress => ({ dispatchCursor: null, dispatchedDocs: 0, dispatchDone: false, batchesTotal: 0, batchesDone: 0, batchesDead: 0 });
 
 /**
  * Run lifecycle and bookkeeping: pending -> dispatching -> running ->
@@ -67,8 +83,49 @@ export class RunsService {
     @Inject(BATCH_REPOSITORY) private readonly batches: BatchRepository,
     @Inject(QUARANTINE_REPOSITORY) private readonly quarantineRepo: QuarantineRepository,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(PROVIDER_REGISTRY) private readonly registry: ProviderRegistry,
+    @Inject(DISPATCH_QUEUE) private readonly dispatchQueue: DispatchQueue,
     private readonly appConfig: AppConfig,
   ) {}
+
+  /**
+   * Create a run (pending), enqueue one dispatch job per selected source, and
+   * move it to dispatching. Batch sizes, concurrency and attempts come from the
+   * validated config (and each handler's batch size), recorded on the run.
+   */
+  async start(filters: RunFilters = {}): Promise<Run> {
+    const rawCollections = filters.collections ?? this.registry.rawCollections();
+    const unknown = rawCollections.filter((c) => !this.registry.has(c));
+    if (rawCollections.length === 0 || unknown.length > 0) {
+      throw new InvalidRunFiltersError(
+        unknown.length > 0 ? `unknown raw collection(s): ${unknown.join(', ')} (known: ${this.registry.rawCollections().join(', ')})` : 'no raw collections selected',
+      );
+    }
+    if (filters.limit !== undefined && !(Number.isInteger(filters.limit) && filters.limit > 0)) {
+      throw new InvalidRunFiltersError(`limit must be a positive integer, got ${filters.limit}`);
+    }
+    const config: RunConfig = {
+      batchSizes: Object.fromEntries(
+        rawCollections.map((c) => [c, this.registry.resolve(c).handler.batchSize ?? this.appConfig.batch.defaultSize]),
+      ),
+      concurrency: this.appConfig.jobs.concurrency,
+      attempts: this.appConfig.jobs.attempts,
+    };
+    const run = await this.createRun({
+      rawCollections,
+      config,
+      filters: { collections: [...rawCollections], ...(filters.limit === undefined ? {} : { limit: filters.limit }) },
+    });
+    await this.startDispatch(run.runId);
+    try {
+      for (const c of rawCollections) await this.dispatchQueue.enqueueDispatch(run.runId, c);
+    } catch (err) {
+      await this.failRun(run.runId, `could not enqueue dispatch: ${(err as Error).message}`);
+      throw err;
+    }
+    this.logger.log({ runId: run.runId, rawCollections, config }, 'Run started');
+    return (await this.runs.get(run.runId)) ?? run;
+  }
 
   // ---------------------------------------------------------------- lifecycle
 
@@ -102,10 +159,40 @@ export class RunsService {
    * Returns the batch keys, new or not, so the caller can (re-)enqueue them.
    */
   async registerBatches(runId: string, rawCollection: string, ranges: readonly BatchRange[], progress: { cursor: string | null; done: boolean }): Promise<string[]> {
+    const { keys, created } = await this.registerBatchRanges(runId, rawCollection, ranges);
+    await this.recordDispatchProgress(runId, rawCollection, { ...progress, batchesAdded: created });
+    return keys;
+  }
+
+  /**
+   * Step 1 of dispatching a page: upsert the batch rows (queued). Returns every
+   * key (new or not) and how many were new. The dispatcher enqueues the keys
+   * *before* step 2 moves the cursor, so a crash can never skip a range.
+   */
+  async registerBatchRanges(runId: string, rawCollection: string, ranges: readonly BatchRange[]): Promise<{ keys: string[]; created: number }> {
     const rows = ranges.map((r) => ({ runId, rawCollection, fromId: r.fromId, toId: r.toId, batchKey: batchKeyOf(rawCollection, r.fromId, r.toId) }));
     const created = rows.length > 0 ? await this.batches.createMany(rows, this.clock()) : 0;
-    await this.runs.recordDispatch(runId, rawCollection, { cursor: progress.cursor, batchesAdded: created, done: progress.done });
-    return rows.map((r) => r.batchKey);
+    return { keys: rows.map((r) => r.batchKey), created };
+  }
+
+  /** Step 2: move the cursor (and dispatchedDocs) and count the new batches. */
+  recordDispatchProgress(
+    runId: string,
+    rawCollection: string,
+    progress: { cursor: string | null; batchesAdded: number; done: boolean; dispatchedDocs?: number },
+  ): Promise<void> {
+    return this.runs.recordDispatch(runId, rawCollection, progress);
+  }
+
+  /**
+   * Called by each source's dispatcher when it is done. Every dispatcher first
+   * records its own dispatchDone and then reads, so the last one to finish always
+   * sees all sources done (the transition itself is guarded, so two may race safely).
+   */
+  async finishDispatchIfComplete(runId: string): Promise<RunStatus> {
+    const run = await this.requireRun(runId);
+    if (run.status !== 'dispatching' || Object.values(run.sources).some((s) => !s.dispatchDone)) return run.status;
+    return this.finishDispatch(runId);
   }
 
   /** All sources dispatched: dispatching -> running, then finalise if every batch already settled. */
