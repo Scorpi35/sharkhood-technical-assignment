@@ -14,6 +14,11 @@ export type { FieldMapping } from '../transform/mapping-interpreter';
  */
 export interface SourceHandler<Valid = unknown, Normalised = unknown> {
   readonly rawCollection: string;
+  /**
+   * Short name the API accepts for this source (e.g. "menus"). Must be unique
+   * across all providers; defaults to the raw collection name.
+   */
+  readonly alias?: string;
   /** Raw docs per batch for this collection. Large documents want smaller batches. */
   readonly batchSize?: number;
   /** Declarative field mapping handed to map() through the stage context. */

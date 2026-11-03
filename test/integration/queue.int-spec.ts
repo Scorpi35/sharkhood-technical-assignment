@@ -163,7 +163,7 @@ describe('queue: dispatcher, batch workers, retries, dead letters (integration)'
     expect(run.sources[RESTAURANTS]).toMatchObject({ dispatchedDocs: 35, batchesTotal: 1 }); // limit 35 < batch 50
     expect(run.sources[MENUS]).toMatchObject({ dispatchedDocs: 35, batchesTotal: 4 }); // 10 + 10 + 10 + 5
     expect(run.counters.read).toBe(70);
-    await expect(runs.start({ collections: ['nope'] })).rejects.toThrow(/unknown raw collection/);
+    await expect(runs.start({ collections: ['nope'] })).rejects.toThrow(/unknown collection\(s\): nope/);
   });
 
   it('deterministic job ids: re-dispatching and re-enqueueing never double-enqueue', async () => {

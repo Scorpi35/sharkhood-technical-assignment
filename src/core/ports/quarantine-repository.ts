@@ -2,6 +2,11 @@ import type { IssueSeverity, QuarantineReason } from '../pipeline/types';
 
 export const QUARANTINE_REPOSITORY = Symbol('QuarantineRepository');
 
+/** A pagination cursor that is not one this repository issued. */
+export class InvalidCursorError extends Error {
+  override readonly name = 'InvalidCursorError';
+}
+
 /**
  * A rejected (or repaired) raw document or record. Never contains the raw body's
  * secrets: `details` comes from provider issues, which are sanitized at source.

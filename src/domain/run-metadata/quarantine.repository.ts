@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Collection, Db, Filter, ObjectId } from 'mongodb';
 import {
+  InvalidCursorError,
   QUARANTINE_REASONS,
   QuarantineEntry,
   QuarantinePage,
@@ -15,10 +16,6 @@ import { QUARANTINE } from './run-metadata.indexes';
 
 /** `path` is stored as null when absent, so the unique identity treats "no path" as one value. */
 type QuarantineDoc = Omit<QuarantineEntry, 'path'> & { _id: ObjectId; path: string | null };
-
-export class InvalidCursorError extends Error {
-  override readonly name = 'InvalidCursorError';
-}
 
 @Injectable()
 export class MongoQuarantineRepository implements QuarantineRepository {

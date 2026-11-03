@@ -23,6 +23,7 @@ import { TARGET_DB } from '../../src/infra/mongo/mongo.tokens';
 import { RAW_SOURCES } from '../../src/infra/seed/raw-sources';
 import { DEFAULT_SEED_OPTIONS, seedRaw } from '../../src/infra/seed/seed-raw';
 import { RunResumer } from '../../src/queue/run-resumer.service';
+import { RunAlreadyFinishedError } from '../../src/runs/runs.errors';
 import { RunsService } from '../../src/runs/runs.service';
 import { connectTestClient } from '../support/mongo';
 import { bootProducer, bootWorker } from '../support/nest';
@@ -184,15 +185,15 @@ describe('idempotency and resumability (integration)', () => {
     const { runId } = await producer.get(RunsService).start({ collections: ['xbyte_raw_locations'] });
 
     // The dispatch job is waiting in Redis: live, so resume leaves it alone.
-    expect(await resumer.resume(runId)).toMatchObject({ status: 'dispatching', alreadyTerminal: false, dispatchRequeued: [], batchesRequeued: 0 });
+    expect(await resumer.resume(runId)).toMatchObject({ status: 'dispatching', terminal: false, dispatchRequeued: [], batchesRequeued: 0 });
 
     // Redis forgets it: resume re-enqueues it under the same deterministic id.
     await flushRedis();
     expect(await resumer.resume(runId)).toMatchObject({ dispatchRequeued: ['xbyte_raw_locations'], batchesRequeued: 0 });
 
-    // A worker finishes the run; resuming a finished run is reported as such (the API maps it to 409).
+    // A worker finishes the run; resuming a finished run is an error (the API maps it to 409).
     const worker = track(await bootWorker(mongod.getUri(), target, { redisUrl, env }));
     const run = await waitForTerminal(worker.get(RunsService), runId);
-    expect(await resumer.resume(runId)).toMatchObject({ alreadyTerminal: true, status: run.status, dispatchRequeued: [], batchesRequeued: 0 });
+    await expect(resumer.resume(runId)).rejects.toEqual(new RunAlreadyFinishedError(runId, run.status));
   });
 });

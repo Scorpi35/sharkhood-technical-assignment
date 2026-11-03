@@ -2,21 +2,17 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import type { Queue } from 'bullmq';
 import { BatchStatus, RunStatus, TERMINAL_RUN_STATUSES } from '../core';
+import { RunAlreadyFinishedError, RunNotFoundError } from '../runs/runs.errors';
 import { RunsService } from '../runs/runs.service';
 import { BATCH_QUEUE_NAME, batchJobId, DISPATCH_QUEUE_NAME, dispatchJobId } from './queue.constants';
 import { QueueProducer } from './queue.producer';
-
-export class UnknownRunError extends Error {
-  override readonly name = 'UnknownRunError';
-}
 
 export interface ResumeReport {
   readonly runId: string;
   /** Status after the resume (unchanged if the run was already terminal). */
   readonly status: RunStatus;
+  /** True if this resume (or work it unblocked) finalised the run. */
   readonly terminal: boolean;
-  /** The run had already finished before this call, so there was nothing to resume. */
-  readonly alreadyTerminal: boolean;
   /** Sources whose dispatch job was missing or dead in Redis and was re-enqueued. */
   readonly dispatchRequeued: string[];
   /** Unsettled batches whose job was missing or dead in Redis and was re-enqueued. */
@@ -52,16 +48,21 @@ export class RunResumer {
 
   async resumeAll(): Promise<ResumeReport[]> {
     const reports: ResumeReport[] = [];
-    for (const runId of await this.runs.listResumableRunIds()) reports.push(await this.resume(runId));
+    for (const runId of await this.runs.listResumableRunIds()) {
+      try {
+        reports.push(await this.resume(runId));
+      } catch (err) {
+        if (!(err instanceof RunAlreadyFinishedError)) throw err; // finished meanwhile: nothing to do
+      }
+    }
     return reports;
   }
 
+  /** RunNotFoundError for an unknown run, RunAlreadyFinishedError if it had already finished. */
   async resume(runId: string): Promise<ResumeReport> {
     let run = await this.runs.getRun(runId);
-    if (!run) throw new UnknownRunError(`unknown run ${runId}`);
-    if (TERMINAL_RUN_STATUSES.includes(run.status)) {
-      return { runId, status: run.status, terminal: true, alreadyTerminal: true, dispatchRequeued: [], batchesRequeued: 0 };
-    }
+    if (!run) throw new RunNotFoundError(runId);
+    if (TERMINAL_RUN_STATUSES.includes(run.status)) throw new RunAlreadyFinishedError(runId, run.status);
     if (run.status === 'pending') {
       await this.runs.startDispatch(runId);
       run = (await this.runs.getRun(runId))!;
@@ -93,7 +94,7 @@ export class RunResumer {
 
     await this.runs.finishDispatchIfComplete(runId);
     const status = await this.runs.checkFinalisation(runId);
-    const report = { runId, status, terminal: TERMINAL_RUN_STATUSES.includes(status), alreadyTerminal: false, dispatchRequeued, batchesRequeued };
+    const report = { runId, status, terminal: TERMINAL_RUN_STATUSES.includes(status), dispatchRequeued, batchesRequeued };
     if (dispatchRequeued.length > 0 || batchesRequeued > 0) this.logger.warn(report, 'Run resumed: re-enqueued work missing from Redis');
     return report;
   }

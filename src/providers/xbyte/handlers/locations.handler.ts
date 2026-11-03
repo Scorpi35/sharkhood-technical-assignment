@@ -16,6 +16,7 @@ interface Normalised {
 export function createLocationsHandler(batchSize?: number): SourceHandler<Valid, Normalised> {
   return {
     rawCollection: RAW_COLLECTIONS.locations,
+    alias: 'locations',
     batchSize,
     mapping: LOCATION_MAPPING,
     transforms: XBYTE_TRANSFORMS,

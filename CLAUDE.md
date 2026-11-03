@@ -40,7 +40,8 @@ src/
   app.module.ts      # composition root: AppModule.forRole(config)
   config/            # Zod env schema, AppConfig, loader. The ONLY place that reads process.env
   logging/           # pino options (shared by app + scripts), nestjs-pino module
-  health/            # GET /health (api liveness)
+  health/            # GET /health: Mongo raw/target + Redis pings, 1 s timeout each, 503 if any is down
+  common/            # ZodValidationPipe, AllExceptionsFilter (JSON errors, no stack traces)
   worker/            # worker-side services (heartbeat for now)
   core/              # provider-agnostic, pure; no infrastructure imports (lint-enforced). See src/core/README.md
     pipeline/        #   contracts (types.ts), Stage, runPipeline, dedupe
@@ -50,7 +51,7 @@ src/
   providers/         # all provider knowledge; providers.module.ts builds the ProviderRegistry
     xbyte/           #   schemas (Zod), mappings (declarative + ownership table), handlers/, adapter, module
   domain/            # one folder per target entity: *.repository.ts (versioned upserts), *.indexes.ts, *.module.ts
-  runs/              # RunsService: run lifecycle, exactly-once batch settlement, quarantine (exports RunsService only)
+  runs/              # RunsService (lifecycle, exactly-once settlement, quarantine) + RunsController (thin) + request schemas
   queue/             # BullMQ: QueueModule (3 queues + producer, all roles), WorkerQueueModule (dispatch/batch processors, worker role)
   infra/             # the only place besides domain/ that may import mongodb (lint-enforced)
     mongo/           #   MongoModule (one client; RAW_DB / TARGET_DB tokens), MongoSourceReader
