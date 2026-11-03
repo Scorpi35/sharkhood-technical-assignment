@@ -7,9 +7,13 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'import'],
   extends: ['plugin:@typescript-eslint/recommended', 'prettier'],
   env: { node: true, jest: true },
+  settings: {
+    // Lets import/no-restricted-paths resolve relative .ts imports to real files.
+    'import/resolver': { node: { extensions: ['.ts', '.js', '.json'] } },
+  },
   ignorePatterns: ['.eslintrc.js', 'dist', 'node_modules'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'error',
@@ -45,9 +49,25 @@ module.exports = {
                 message: 'src/core may only import @nestjs types (for DI tokens), not values.',
               },
               { group: ['mongodb/*', 'bullmq/*'], message: 'src/core must not depend on infrastructure.' },
+            ],
+          },
+        ],
+        // src/providers and src/domain are checked by resolved path, not by import string:
+        // a string pattern like '**/providers/**' would also block src/core/providers
+        // (core's own adapter contracts), which the convention does not mean.
+        'import/no-restricted-paths': [
+          'error',
+          {
+            zones: [
               {
-                group: ['**/providers', '**/providers/**', '**/domain', '**/domain/**'],
-                message: 'src/core is provider-agnostic: it must not import src/providers or src/domain.',
+                target: './src/core',
+                from: './src/providers',
+                message: 'src/core is provider-agnostic: it must not import src/providers.',
+              },
+              {
+                target: './src/core',
+                from: './src/domain',
+                message: 'src/core must not import src/domain.',
               },
             ],
           },

@@ -42,7 +42,10 @@ src/
   logging/           # pino options (shared by app + scripts), nestjs-pino module
   health/            # GET /health (api liveness)
   worker/            # worker-side services (heartbeat for now)
-  core/              # pure domain logic, no infrastructure imports (lint-enforced)
+  core/              # provider-agnostic, pure; no infrastructure imports (lint-enforced). See src/core/README.md
+    pipeline/        #   contracts (types.ts), Stage, runPipeline, dedupe
+    providers/       #   ProviderAdapter / SourceHandler, declarative FieldMapping, ProviderRegistry
+    ports/           #   SourceReader, TargetWriter, Quarantine/Run/Batch repositories + Symbol DI tokens
   seed/              # raw-sources.ts (file -> collection map) + streaming seed
 scripts/             # ts-node entry points (seed-raw.ts); logic lives in src/ so it compiles into dist/
 data/raw/            # provider sample files (Extended JSON arrays)

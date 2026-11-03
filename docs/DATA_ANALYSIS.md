@@ -424,10 +424,11 @@ collections are orders of magnitude larger and must be migrated without
 loading a collection, or even a large batch, into memory:
 
 - **Cursor plus `_id`-range batching.** A planner walks each raw collection in
-  `_id` order and cuts it into contiguous ranges `[fromId, toId)` of
-  *N* documents. Each range is one job. A worker reads its range with a
-  cursor (`find({_id: {$gte: from, $lt: to}}).sort({_id: 1})`), never with
-  `skip`. `_id` ranges are stable: re-running a range reads exactly the same
+  `_id` order (`SourceReader.scanIds`) and cuts it into contiguous,
+  inclusive ranges `[fromId, toId]` of *N* documents: the first and last id
+  of each scanned page. Each range is one job. A worker reads its range with a
+  cursor (`find({_id: {$gte: from, $lte: to}}).sort({_id: 1})`,
+  `SourceReader.readRange`), never with `skip`. `_id` ranges are stable: re-running a range reads exactly the same
   documents, which makes retries and resumption idempotent.
 - **Menus use a smaller batch.** Measured BSON sizes: menus average 18.9 KB
   and reach **153.8 KB**, while listing pages are 3.2 KB. `BATCH_SIZE_MENUS=25`
