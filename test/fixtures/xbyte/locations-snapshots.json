@@ -1,0 +1,102 @@
+[
+  {
+    "_id": {
+      "$oid": "6aa77f312ba6464eb6cb9014"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat",
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat",
+        "request_time": "2026-09-13 21:59:26.925495",
+        "request_process_time": "3.5890421867370605",
+        "statusCode": 200
+      },
+      "results": [
+        {
+          "location_name": "Dubai World Trade Center - DWTC",
+          "location_slug": "dubai-world-trade-center-dwtc",
+          "location_id": 1280
+        },
+        {
+          "location_name": "Industrial Area 18",
+          "location_slug": "industrial-area-18",
+          "location_id": 2652
+        },
+        {
+          "location_name": "Al Zaab",
+          "location_slug": "al-zaab",
+          "location_id": 1468
+        },
+        {
+          "location_name": "Industrial Area",
+          "location_slug": "industrial-area",
+          "location_id": 3892
+        },
+        {
+          "location_name": "Industrial Area",
+          "location_slug": "industrial-area",
+          "location_id": 5625
+        }
+      ]
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-09-14T04:59:29.936Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-14T04:59:29.936Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "6aa77f332ba6464eb6cb97e2"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat",
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat",
+        "request_time": "2026-09-13 21:59:31.356918",
+        "request_process_time": "0.6644282341003418",
+        "statusCode": 200
+      },
+      "results": [
+        {
+          "location_name": "Dubai World Trade Center - DWTC",
+          "location_slug": "dubai-world-trade-center-dwtc",
+          "location_id": 1280
+        },
+        {
+          "location_name": "Industrial Area 18",
+          "location_slug": "industrial-area-18",
+          "location_id": 2652
+        },
+        {
+          "location_name": "Al Zaab",
+          "location_slug": "al-zaab",
+          "location_id": 1468
+        },
+        {
+          "location_name": "Industrial Area",
+          "location_slug": "industrial-area",
+          "location_id": 3892
+        },
+        {
+          "location_name": "Industrial Area",
+          "location_slug": "industrial-area",
+          "location_id": 5625
+        }
+      ]
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-09-14T04:59:31.440Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-14T04:59:31.440Z"
+    },
+    "__v": 0
+  }
+]

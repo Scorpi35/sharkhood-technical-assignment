@@ -4,7 +4,7 @@ How the migration service is put together. For the data itself (source shapes,
 anomalies, the target model and the reasoning behind it), read
 **[docs/DATA_ANALYSIS.md](./docs/DATA_ANALYSIS.md)** first.
 
-> Status: T01–T11 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider, Mongo repositories, runs, queue). Sections marked
+> Status: T01–T12 are built (bootstrap, raw seed, core pipeline, transforms, xbyte provider, Mongo repositories, runs, queue). Sections marked
 > *planned* describe the design that later tickets implement.
 
 ## Components
@@ -147,11 +147,13 @@ sequenceDiagram
   `dead`, `$inc`s `batchesDead`, records `lastError` on the run and runs the
   finalisation check. The run ends `completed_with_errors`. A dispatch job that
   fails permanently fails the run.
-- **Killed workers.** Stall recovery is set explicitly in
-  `src/queue/queue.constants.ts`. A dead worker's lock expires after
-  `lockDuration` (30 s). Within `stalledInterval` (15 s), a live worker moves
-  the job back to waiting. A job that stalls more than `maxStalledCount` (2)
-  times is failed into the dead-letter path.
+- **Killed workers.** Stall recovery is explicit, validated config:
+  `WORKER_LOCK_DURATION_MS` (30 s), `WORKER_STALLED_INTERVAL_MS` (15 s) and
+  `WORKER_MAX_STALLED_COUNT` (2); see `src/queue/queue.constants.ts`. A dead
+  worker's lock expires after the lock duration. Within the stalled interval,
+  a live worker moves the job back to waiting. A job that stalls more than the
+  max count is failed into the dead-letter path. These are read at import time
+  (BullMQ processor options are static).
 - **Config.** `WORKER_CONCURRENCY`, `JOB_ATTEMPTS`, `JOB_BACKOFF_MS` and the
   batch sizes come only from validated config. They are recorded on each run
   (`config`).

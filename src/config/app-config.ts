@@ -13,6 +13,7 @@ export class AppConfig {
   readonly mongo: { readonly uri: string; readonly rawDbName: string; readonly targetDbName: string };
   readonly redis: { readonly url: string };
   readonly jobs: { readonly concurrency: number; readonly attempts: number; readonly backoffMs: number };
+  readonly worker: { readonly lockDurationMs: number; readonly stalledIntervalMs: number; readonly maxStalledCount: number };
   readonly batch: { readonly defaultSize: number; readonly menusSize: number };
   readonly errorSampleSize: number;
 
@@ -28,6 +29,11 @@ export class AppConfig {
       concurrency: env.WORKER_CONCURRENCY,
       attempts: env.JOB_ATTEMPTS,
       backoffMs: env.JOB_BACKOFF_MS,
+    };
+    this.worker = {
+      lockDurationMs: env.WORKER_LOCK_DURATION_MS,
+      stalledIntervalMs: env.WORKER_STALLED_INTERVAL_MS,
+      maxStalledCount: env.WORKER_MAX_STALLED_COUNT,
     };
     this.batch = { defaultSize: env.BATCH_SIZE_DEFAULT, menusSize: env.BATCH_SIZE_MENUS };
     this.errorSampleSize = env.ERROR_SAMPLE_SIZE;

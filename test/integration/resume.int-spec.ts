@@ -4,12 +4,10 @@
  *  2. losing a worker / Redis mid-run recovers without reprocessing completed work or corrupting output.
  */
 import type { INestApplicationContext } from '@nestjs/common';
-import { Redis } from 'ioredis';
 import { resolve } from 'node:path';
 import { Db, Document, MongoClient, ObjectId } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import pino from 'pino';
-import { GenericContainer, StartedTestContainer } from 'testcontainers';
 import { DomainRecord, Run, TARGET_WRITER, TargetWriter, TERMINAL_RUN_STATUSES } from '../../src/core';
 import { AREA_REPOSITORY } from '../../src/domain/area/area.repository';
 import { CompositeTargetWriter } from '../../src/domain/composite-target-writer';
@@ -26,6 +24,7 @@ import { RunResumer } from '../../src/queue/run-resumer.service';
 import { RunAlreadyFinishedError } from '../../src/runs/runs.errors';
 import { RunsService } from '../../src/runs/runs.service';
 import { connectTestClient } from '../support/mongo';
+import { startRedis, TestRedis } from '../support/redis';
 import { bootProducer, bootWorker } from '../support/nest';
 
 const ROOT = resolve(__dirname, '../..');
@@ -35,7 +34,7 @@ type Fingerprint = Record<string, CollectionFingerprint>;
 
 describe('idempotency and resumability (integration)', () => {
   let mongod: MongoMemoryServer;
-  let redis: StartedTestContainer;
+  let redis: TestRedis;
   let redisUrl: string;
   let seedClient: MongoClient;
   let maxRawCreatedAt: Date;
@@ -45,11 +44,7 @@ describe('idempotency and resumability (integration)', () => {
   const env = { RAW_DB_NAME: RAW_DB, WORKER_CONCURRENCY: '4', JOB_ATTEMPTS: '3', JOB_BACKOFF_MS: '100' };
   const dbName = () => `target_${new ObjectId().toHexString()}`;
   const track = (app: INestApplicationContext) => (open.push(app), app);
-  const flushRedis = async () => {
-    const r = new Redis(redisUrl);
-    await r.flushall();
-    r.disconnect();
-  };
+  const flushRedis = () => redis.flush();
   const waitForTerminal = async (runs: RunsService, runId: string, timeoutMs = 60_000): Promise<Run> => {
     const deadline = Date.now() + timeoutMs;
     for (;;) {
@@ -68,8 +63,8 @@ describe('idempotency and resumability (integration)', () => {
   };
 
   beforeAll(async () => {
-    [mongod, redis] = await Promise.all([MongoMemoryServer.create(), new GenericContainer('redis:7').withExposedPorts(6379).start()]);
-    redisUrl = `redis://${redis.getHost()}:${redis.getMappedPort(6379)}`;
+    [mongod, redis] = await Promise.all([MongoMemoryServer.create(), startRedis()]);
+    redisUrl = redis.url;
     seedClient = await connectTestClient(mongod.getUri());
     const raw = seedClient.db(RAW_DB);
     await seedRaw(raw, pino({ level: 'silent' }), RAW_SOURCES, { ...DEFAULT_SEED_OPTIONS, baseDir: ROOT });

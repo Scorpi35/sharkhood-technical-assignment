@@ -1,13 +1,11 @@
 import type { INestApplicationContext } from '@nestjs/common';
 import { getQueueToken } from '@nestjs/bullmq';
 import type { Queue } from 'bullmq';
-import { Redis } from 'ioredis';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { BSON, Db, Document, MongoClient, MongoNetworkError, ObjectId } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import pino from 'pino';
-import { GenericContainer, StartedTestContainer } from 'testcontainers';
 import { DomainRecord, Run, TARGET_WRITER, TargetWriter, TERMINAL_RUN_STATUSES, WriteResult } from '../../src/core';
 import { RUN_BATCHES, QUARANTINE } from '../../src/domain/run-metadata/run-metadata.indexes';
 import { TARGET_DB } from '../../src/infra/mongo/mongo.tokens';
@@ -18,6 +16,7 @@ import { BATCH_QUEUE_NAME, batchJobId, DEAD_LETTER_QUEUE_NAME, DISPATCH_QUEUE_NA
 import { QueueProducer } from '../../src/queue/queue.producer';
 import { RunsService } from '../../src/runs/runs.service';
 import { connectTestClient } from '../support/mongo';
+import { startRedis, TestRedis } from '../support/redis';
 import { bootWorker } from '../support/nest';
 
 const ROOT = resolve(__dirname, '../..');
@@ -36,22 +35,18 @@ function uniqueOutletAreaPairs(): number {
 
 describe('queue: dispatcher, batch workers, retries, dead letters (integration)', () => {
   let mongod: MongoMemoryServer;
-  let redis: StartedTestContainer;
+  let redis: TestRedis;
   let redisUrl: string;
   let seedClient: MongoClient;
   let app: INestApplicationContext | undefined;
 
   beforeAll(async () => {
-    [mongod, redis] = await Promise.all([MongoMemoryServer.create(), new GenericContainer('redis:7').withExposedPorts(6379).start()]);
-    redisUrl = `redis://${redis.getHost()}:${redis.getMappedPort(6379)}`;
+    [mongod, redis] = await Promise.all([MongoMemoryServer.create(), startRedis()]);
+    redisUrl = redis.url;
     seedClient = await connectTestClient(mongod.getUri());
     await seedRaw(seedClient.db(RAW_DB), pino({ level: 'silent' }), RAW_SOURCES, { ...DEFAULT_SEED_OPTIONS, baseDir: ROOT });
   });
-  beforeEach(async () => {
-    const r = new Redis(redisUrl);
-    await r.flushall();
-    r.disconnect();
-  });
+  beforeEach(() => redis.flush());
   afterEach(async () => {
     await app?.close();
     app = undefined;

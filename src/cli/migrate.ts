@@ -1,3 +1,5 @@
+// Must stay the first import: loads .env before AppModule's import-time config validation.
+import '../config/env-file';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module';
 import { loadConfigOrExit } from '../config/load-config';
