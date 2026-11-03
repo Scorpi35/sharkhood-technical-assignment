@@ -1,12 +1,14 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { AppConfigModule } from './config/config.module';
 import type { AppConfig } from './config/app-config';
+import { RunsController } from './api/runs.controller';
 import { DomainModule } from './domain/domain.module';
 import { HealthController } from './health/health.controller';
 import { MongoModule } from './infra/mongo/mongo.module';
 import { LoggingModule } from './logging/logging.module';
 import { ProvidersModule } from './providers/providers.module';
 import { QueueModule } from './queue/queue.module';
+import { RunResumeModule } from './queue/run-resume.module';
 import { WorkerQueueModule } from './queue/worker-queue.module';
 import { RunsModule } from './runs/runs.module';
 import { WorkerHeartbeatService } from './worker/worker-heartbeat.service';
@@ -31,9 +33,10 @@ export class AppModule {
         ProvidersModule,
         RunsModule,
         QueueModule,
+        ...(config.runsHttp ? [RunResumeModule] : []),
         ...(config.runsWorker ? [WorkerQueueModule] : []),
       ],
-      controllers: config.runsHttp ? [HealthController] : [],
+      controllers: config.runsHttp ? [HealthController, RunsController] : [],
       providers: config.runsWorker ? [WorkerHeartbeatService] : [],
     };
   }

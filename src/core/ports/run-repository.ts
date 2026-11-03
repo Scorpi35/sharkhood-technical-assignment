@@ -64,6 +64,8 @@ export interface Run {
 export interface RunRepository {
   create(run: Run): Promise<void>;
   get(runId: string): Promise<Run | null>;
+  /** Ids of runs in any of `statuses`, oldest first (e.g. the non-terminal runs to resume on boot). */
+  listIdsByStatus(statuses: readonly RunStatus[], limit: number): Promise<string[]>;
   /** Guarded status change: applies only if the current status is one of `from`. Returns whether it applied. */
   transition(runId: string, from: readonly RunStatus[], to: RunStatus, timings?: Partial<RunTimings>, lastError?: string): Promise<boolean>;
   /**

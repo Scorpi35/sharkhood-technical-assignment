@@ -16,7 +16,9 @@
     "lint": "eslint \"{src,test,scripts}/**/*.ts\"",
     "test": "jest",
     "test:int": "jest --config ./test/jest-int.json --runInBand",
-    "seed": "ts-node --transpile-only scripts/seed-raw.ts"
+    "seed": "ts-node --transpile-only scripts/seed-raw.ts",
+    "fingerprint": "ts-node --transpile-only scripts/target-fingerprint.ts",
+    "migrate": "ts-node --transpile-only scripts/migrate.ts"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.5",
