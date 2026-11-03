@@ -1,7 +1,8 @@
 import type { DomainRecordDraft, StageOutcome } from '../pipeline/types';
-import type { FieldMapping } from './field-mapping';
+import type { FieldMapping } from '../transform/mapping-interpreter';
+import type { TransformRegistry } from '../transform/transform-registry';
 
-export type { FieldMapping, TransformName } from './field-mapping';
+export type { FieldMapping } from '../transform/mapping-interpreter';
 
 /**
  * Everything the pipeline needs to process one raw collection. All three
@@ -17,6 +18,11 @@ export interface SourceHandler<Valid = unknown, Normalised = unknown> {
   readonly batchSize?: number;
   /** Declarative field mapping handed to map() through the stage context. */
   readonly mapping?: readonly FieldMapping[];
+  /**
+   * Transforms the mapping may name: built-ins plus the provider's bound ones.
+   * Defaults to the built-ins. The mapping is checked against it when registered.
+   */
+  readonly transforms?: TransformRegistry;
   /** Structural check of the raw body; provider error payloads fail here. */
   validate(body: unknown): StageOutcome<Valid>;
   /** Clean values (types, whitespace, units). Cannot fail: validate() already did. */

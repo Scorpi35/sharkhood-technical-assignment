@@ -1,4 +1,4 @@
-import { applyFieldMappings, FieldMapping } from '../providers/field-mapping';
+import { applyMapping, FieldMapping } from '../transform/mapping-interpreter';
 import type { ProviderAdapter, SourceHandler } from '../providers/provider-adapter';
 import { ProviderRegistryError } from '../providers/provider-registry';
 import { runPipeline } from './runner';
@@ -30,10 +30,10 @@ function handler(overrides: Partial<SourceHandler<ThingBody, ThingBody>> = {}): 
       return n.areas.map((a) => {
         if (a.name === 'boom') throw new Error('unexpected bug in map');
         if (a.name === 'bad') return fail({ reason: 'SCHEMA_INVALID', message: 'bad area', path: 'areas.name' });
-        const data = applyFieldMappings('area', a, m);
-        return data.ok
-          ? ok({ entity: 'area', key: { platform: 'talabat', externalId: a.id }, data: data.value as unknown as AreaData })
-          : data;
+        const mapped = applyMapping(a, m);
+        return mapped.ok
+          ? ok({ entity: 'area', key: { platform: 'talabat', externalId: a.id }, data: mapped.value.area as AreaData })
+          : mapped;
       });
     },
     ...overrides,

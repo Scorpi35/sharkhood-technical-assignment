@@ -219,7 +219,7 @@ Quarantine excerpts never include `endpoint` or `requests_url`.
 | Two different ids | `id` ≠ URL id on 345/345; `outletCode` = URL id on 345/345 | `externalId` comes from `outletCode`; `vendorId` from `id`. Both are kept. |
 | `aid=1280` is scrape context | 500/500 menu URLs use DWTC | **ignore** for coverage: a menu never creates a `restaurant_areas` row. `aid` is stripped from stored URLs. |
 | Zero overlap with listings | 0 of 345 menu outlets are in the listing sample | Joins tolerate orphans in both directions (§2) |
-| Coordinates are strings | 345/345 numeric, all inside Dubai | **normalise** to a GeoJSON `Point [lng, lat]`. Non-numeric or out-of-range values give `geo: null`, and the rest of the restaurant is still written. |
+| Coordinates are strings | 345/345 numeric, all inside Dubai | **normalise** to a GeoJSON `Point [lng, lat]`. Non-numeric, out-of-range or `(0, 0)` ("null island" placeholder) values give `geo: null`, and the rest of the restaurant is still written. |
 | `rate` 0 means unrated | `rate` is int or float, 0–5. 3 restaurants have `rate` 0, all with `totalRatings` 0. | **normalise**: `rating.value = null` when `rate` is 0 |
 | `totalRatings` is capped | Exactly 1000 on **173/345** | **normalise**: `rating.count` keeps the number, and `rating.countIsLowerBound = true` when it equals 1000 |
 | `totalReviews` constant | 0 on 345/345 | **ignore** |

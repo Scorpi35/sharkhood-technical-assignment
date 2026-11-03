@@ -1,4 +1,4 @@
-import type { FieldMapping } from '../providers/field-mapping';
+import type { FieldMapping } from '../transform/mapping-interpreter';
 import type { StageOutcome } from './types';
 
 /**
