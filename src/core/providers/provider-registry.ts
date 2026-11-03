@@ -1,3 +1,5 @@
+import { MappingError, validateMapping } from '../transform/mapping-interpreter';
+import { DEFAULT_TRANSFORMS } from '../transform/transform-registry';
 import type { ProviderAdapter, SourceHandler } from './provider-adapter';
 
 export interface ResolvedSource {
@@ -10,13 +12,23 @@ export class ProviderRegistryError extends Error {
   override readonly name = 'ProviderRegistryError';
 }
 
-/** Resolves the SourceHandler (and its adapter) responsible for a raw collection. */
+/**
+ * Resolves the SourceHandler (and its adapter) responsible for a raw collection.
+ * Registration is also where each handler's mapping is validated against its
+ * transform registry, so an unknown transform name fails at startup, not mid-run.
+ */
 export class ProviderRegistry {
   private readonly byCollection = new Map<string, ResolvedSource>();
 
   constructor(adapters: readonly ProviderAdapter[]) {
     for (const adapter of adapters) {
       for (const handler of adapter.sources) {
+        try {
+          validateMapping(handler.mapping ?? [], handler.transforms ?? DEFAULT_TRANSFORMS);
+        } catch (err) {
+          if (!(err instanceof MappingError)) throw err;
+          throw new ProviderRegistryError(`${adapter.provider} / ${handler.rawCollection}: ${err.message}`);
+        }
         const existing = this.byCollection.get(handler.rawCollection);
         if (existing) {
           throw new ProviderRegistryError(

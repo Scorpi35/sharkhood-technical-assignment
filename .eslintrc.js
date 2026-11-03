@@ -49,7 +49,38 @@ module.exports = {
                 message: 'src/core may only import @nestjs types (for DI tokens), not values.',
               },
               { group: ['mongodb/*', 'bullmq/*'], message: 'src/core must not depend on infrastructure.' },
+              {
+                // No I/O and no randomness: core transforms are pure (CLAUDE.md > Conventions).
+                group: ['node:*', 'fs', 'fs/*', 'http', 'https', 'net', 'tls', 'dns', 'dgram', 'child_process', 'worker_threads', 'os', 'crypto'],
+                message: 'src/core is pure: no Node I/O, OS or crypto modules.',
+              },
             ],
+          },
+        ],
+        // Purity: no clock, no randomness, no process/timer globals in core.
+        'no-restricted-properties': [
+          'error',
+          { object: 'process', property: 'env', message: 'Inject AppConfig instead of reading process.env.' },
+          { object: 'Date', property: 'now', message: 'src/core is pure: timestamps come from the source document.' },
+          { object: 'Math', property: 'random', message: 'src/core is pure: no randomness.' },
+          { object: 'performance', property: 'now', message: 'src/core is pure: no clock.' },
+        ],
+        'no-restricted-globals': [
+          'error',
+          ...['process', 'setTimeout', 'setInterval', 'setImmediate', 'queueMicrotask', 'fetch', 'performance'].map((name) => ({
+            name,
+            message: `src/core is pure: no ${name}.`,
+          })),
+        ],
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: "NewExpression[callee.name='Date'][arguments.length=0]",
+            message: 'src/core is pure: new Date() reads the clock. Use the source timestamp.',
+          },
+          {
+            selector: "CallExpression[callee.name='Date']",
+            message: 'src/core is pure: Date() reads the clock.',
           },
         ],
         // src/providers and src/domain are checked by resolved path, not by import string:
