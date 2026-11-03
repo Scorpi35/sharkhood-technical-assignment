@@ -13,10 +13,10 @@
     "start": "node dist/main.js",
     "start:dev": "NODE_ENV=development nest start --watch",
     "start:worker": "APP_ROLE=worker node dist/main.js",
-    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "lint": "eslint \"{src,test,scripts}/**/*.ts\"",
     "test": "jest",
     "test:int": "jest --config ./test/jest-int.json --runInBand",
-    "seed": "node dist/scripts/seed.js"
+    "seed": "ts-node --transpile-only scripts/seed-raw.ts"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.5",
@@ -32,7 +32,7 @@
     "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
-    "stream-json": "^3.8.0",
+    "stream-json": "^1.9.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {

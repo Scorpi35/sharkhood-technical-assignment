@@ -49,6 +49,8 @@ services:
       APP_ROLE: api
       PORT: 3000
     ports: ['3000:3000']
+    # Sample files for `docker compose run --rm api npm run seed`.
+    volumes: ['./data/raw:/app/data/raw:ro']
     depends_on: *app-depends
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/health']

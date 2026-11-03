@@ -25,9 +25,10 @@ npm run start:dev      # watch mode, pretty logs
 npm run lint
 npm test               # unit tests: src/**/*.spec.ts
 npm run test:int       # integration tests: test/integration (mongodb-memory-server / testcontainers)
-npm run seed
+npm run seed           # stream data/raw/*.json into provider_raw (idempotent upsert by _id)
 
 docker compose up --build    # mongo, redis, api, worker
+docker compose run --rm api npm run seed   # same seed, from the image (data/raw mounted read-only)
 docker compose kill worker   # simulate a worker crash (resumability demo)
 ```
 
@@ -38,15 +39,21 @@ src/
   main.ts            # validates config first, then boots by role
   app.module.ts      # composition root: AppModule.forRole(config)
   config/            # Zod env schema, AppConfig, loader. The ONLY place that reads process.env
-  logging/           # nestjs-pino setup
+  logging/           # pino options (shared by app + scripts), nestjs-pino module
   health/            # GET /health (api liveness)
   worker/            # worker-side services (heartbeat for now)
   core/              # pure domain logic, no infrastructure imports (lint-enforced)
-  scripts/           # CLI entry points (seed)
+  seed/              # raw-sources.ts (file -> collection map) + streaming seed
+scripts/             # ts-node entry points (seed-raw.ts); logic lives in src/ so it compiles into dist/
+data/raw/            # provider sample files (Extended JSON arrays)
 test/
   integration/       # integration tests (npm run test:int)
-  fixtures/          # trimmed real samples only
+  fixtures/          # trimmed real samples only (api_key redacted)
+  support/           # test helpers (connectTestClient: Jest/driver NODE-7832 workaround)
 ```
+
+Inside Jest, always connect with `connectTestClient()` from `test/support/mongo.ts`;
+a bare `MongoClient.connect` fails the handshake there (driver bug NODE-7832).
 
 ## Project rules (enforced by T01 tooling)
 
