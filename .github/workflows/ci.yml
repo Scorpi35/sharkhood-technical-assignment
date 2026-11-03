@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: lint, unit tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # package-lock.json was written by npm 11; npm 10 (bundled with Node 22) resolves
+      # peer deps differently and rejects it in `npm ci`. Same pin as the Dockerfile.
+      - run: npm install -g npm@11.17.0
+
+      # No install scripts are needed for lint/unit/build, and skipping them stops
+      # mongodb-memory-server downloading a mongod binary the unit tests never use.
+      - run: npm ci --ignore-scripts
+
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
