@@ -1,0 +1,126 @@
+[
+  {
+    "_id": {
+      "$oid": "6aa77f3d2ba6464eb6cb9d5e"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/",
+    "params": {
+      "domain": "talabat",
+      "areaSlug": "al-zaab",
+      "areaId": "1468",
+      "page_no": 0
+    },
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&areaSlug=al-zaab&areaId=1468&page_no=0",
+        "request_time": "2026-09-13 21:59:34.858660",
+        "request_process_time": "7.066908597946167",
+        "statusCode": 200
+      },
+      "Total Page": 227,
+      "results": [
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "Sla Restaurant and Cafe",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/648607/sla-restaurant-and-cafe-al-rowdah?aid=1468"
+        },
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "Be Fit For Healthy Meals",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/603050/be-fit-for-healthy-meals-al-nahyan?aid=1468"
+        },
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "PINOY ZONE RESTAURANT",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/686934/pinoy-zone-restaurant-tourist-club-area-al-zahiya?aid=1468"
+        },
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "Haru Korean Restaurant",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/717241/haru-korean-restaurant-tourist-club-area-al-zahiya?aid=1468"
+        },
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "Lgaimat and chebab, Al Khalidiyah",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/26268/lgaimat-and-chebab-al-khalidiyah?aid=1468"
+        },
+        {
+          "area_name": "Al Zaab",
+          "restaurant_name": "Mashruha",
+          "restaurant_url": "https://www.talabat.com/uae/restaurant/692698/mashruha-al-zafranah?aid=1468"
+        }
+      ]
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-09-14T04:59:41.429Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-14T04:59:41.429Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "6aa77f642ba6464eb6cb9f94"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/",
+    "params": {
+      "domain": "talabat",
+      "areaSlug": "al-zaab",
+      "areaId": "1468",
+      "page_no": 3
+    },
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&areaSlug=al-zaab&areaId=1468&page_no=3",
+        "request_time": "2026-09-13 22:00:12.575777",
+        "request_process_time": "8.446701049804688",
+        "statusCode": 200
+      },
+      "Total Page": 1,
+      "Page Error Message": "Page limit exceeded.",
+      "results": []
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-09-14T05:00:20.416Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-14T05:00:20.416Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "6aa782574947d6f5e729e54c"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/",
+    "params": {
+      "domain": "talabat",
+      "areaSlug": "al-zaab",
+      "areaId": "1468",
+      "page_no": 14
+    },
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&areaSlug=al-zaab&areaId=1468&page_no=14",
+        "request_time": "2026-09-13 22:12:37.099449",
+        "request_process_time": "18.819371223449707",
+        "statusCode": 200
+      },
+      "error": ""
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-09-14T05:12:55.574Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-14T05:12:55.574Z"
+    },
+    "__v": 0
+  }
+]

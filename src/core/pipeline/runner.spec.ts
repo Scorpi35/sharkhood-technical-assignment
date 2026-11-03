@@ -3,7 +3,7 @@ import type { ProviderAdapter, SourceHandler } from '../providers/provider-adapt
 import { ProviderRegistryError } from '../providers/provider-registry';
 import { runPipeline } from './runner';
 import { raw, seededRandom, shuffle } from './test-helpers';
-import { AreaData, DomainRecordDraft, fail, ok, StageOutcome } from './types';
+import { AreaData, DomainRecordDraft, fail, ok, StageOutcome, warning } from './types';
 
 /** A tiny fake provider: each raw doc lists areas; map() fans out one record per area. */
 interface ThingBody {
@@ -32,7 +32,7 @@ function handler(overrides: Partial<SourceHandler<ThingBody, ThingBody>> = {}): 
         if (a.name === 'bad') return fail({ reason: 'SCHEMA_INVALID', message: 'bad area', path: 'areas.name' });
         const mapped = applyMapping(a, m);
         return mapped.ok
-          ? ok({ entity: 'area', key: { platform: 'talabat', externalId: a.id }, data: mapped.value.area as AreaData })
+          ? ok({ entity: 'area', key: { platform: 'example', externalId: String(a.id) }, data: mapped.value.area as AreaData }, a.name === 'Warned' ? [warning({ reason: 'DUPLICATE_CONFLICT', message: 'repaired', path: 'areas' })] : [])
           : mapped;
       });
     },
@@ -42,7 +42,7 @@ function handler(overrides: Partial<SourceHandler<ThingBody, ThingBody>> = {}): 
 
 const adapter = (h: SourceHandler<ThingBody, ThingBody> = handler()): ProviderAdapter => ({
   provider: 'fake',
-  platform: 'talabat',
+  platform: 'example',
   sources: [h],
 });
 
@@ -59,8 +59,8 @@ describe('runPipeline', () => {
       expect.objectContaining({ sourceId: 'd2', rawCollection: 'raw_things', stage: 'map', reason: 'TRANSFORM_ERROR', message: 'unexpected bug in map' }),
     ]);
     expect(result.records.map((r) => r.key)).toEqual([
-      { platform: 'talabat', externalId: 1 },
-      { platform: 'talabat', externalId: 3 },
+      { platform: 'example', externalId: '1' },
+      { platform: 'example', externalId: '3' },
     ]);
     expect(result.counters).toMatchObject({ rawDocuments: 3, okDocuments: 2, quarantinedDocuments: 1 });
     expect(result.counters.issuesByReason.TRANSFORM_ERROR).toBe(1);
@@ -86,11 +86,27 @@ describe('runPipeline', () => {
     ]);
   });
 
-  it('is all-or-nothing per document: one failed outcome drops all of that document', () => {
+  it('drops only the failed record when map() fails, keeping the rest of the document', () => {
     const { records, issues, counters } = runPipeline([raw('d1', { areas: [area(1), area(2, 'bad'), area(3)] })], adapter());
+    expect(records.map((r) => r.key)).toEqual([
+      { platform: 'example', externalId: '1' },
+      { platform: 'example', externalId: '3' },
+    ]);
+    expect(issues).toEqual([expect.objectContaining({ stage: 'map', reason: 'SCHEMA_INVALID', severity: 'error', path: 'areas.name' })]);
+    expect(counters).toMatchObject({ okDocuments: 0, partialDocuments: 1, quarantinedDocuments: 0, errors: 1 });
+  });
+
+  it('counts a document whose every record failed as quarantined', () => {
+    const { records, counters } = runPipeline([raw('d1', { areas: [area(2, 'bad')] })], adapter());
     expect(records).toEqual([]);
-    expect(issues).toHaveLength(1);
-    expect(counters.quarantinedDocuments).toBe(1);
+    expect(counters).toMatchObject({ okDocuments: 0, partialDocuments: 0, quarantinedDocuments: 1 });
+  });
+
+  it('reports warnings without dropping the record', () => {
+    const { records, issues, counters } = runPipeline([raw('d1', { areas: [area(1, 'Warned')] })], adapter());
+    expect(records).toHaveLength(1);
+    expect(issues).toEqual([expect.objectContaining({ reason: 'DUPLICATE_CONFLICT', severity: 'warning', stage: 'map' })]);
+    expect(counters).toMatchObject({ okDocuments: 1, errors: 0, warnings: 1 });
   });
 
   it('stamps version and source from the raw document, and applies the mapping', () => {
@@ -98,7 +114,7 @@ describe('runPipeline', () => {
     const [record] = runPipeline([raw('abc', { areas: [area(7, '  Al   Zaab ')] }, 'raw_things', ts)], adapter()).records;
     expect(record).toEqual({
       entity: 'area',
-      key: { platform: 'talabat', externalId: 7 },
+      key: { platform: 'example', externalId: '7' },
       data: { name: 'Al Zaab', slug: 'area-7' },
       version: { sourceTs: ts, rawId: 'abc' },
       source: { provider: 'fake', rawCollection: 'raw_things' },

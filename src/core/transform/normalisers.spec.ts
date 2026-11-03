@@ -8,7 +8,9 @@ import {
   extractUrlSegment,
   parseDurationRange,
   placeholderToNull,
+  stripUrlQuery,
   toGeoPoint,
+  toIdString,
   toMinorUnits,
   toNumber,
   trimCollapse,
@@ -95,15 +97,31 @@ describe('normalisers', () => {
   });
 
   it('restaurant id and country exist only inside the URL', () => {
-    const url = 'https://www.talabat.com/uae/restaurant/648607/sla-restaurant-and-cafe-al-rowdah?aid=1468';
+    const url = 'https://www.example.com/uae/restaurant/648607/sla-restaurant-and-cafe-al-rowdah?aid=1468';
     expect(value(extractUrlId(url, /\/restaurant\/(\d+)\//))).toBe(648607);
     expect(value(extractUrlSegment(url, /^https?:\/\/[^/]+\/([^/]+)\/restaurant\//))).toBe('uae');
-    expect(value(extractUrlId('https://www.talabat.com/uae/offers', /\/restaurant\/(\d+)\//))).toBe('ISSUE');
+    expect(value(extractUrlId('https://www.example.com/uae/offers', /\/restaurant\/(\d+)\//))).toBe('ISSUE');
     expect(() => extractUrlId(url, /\/restaurant\/\d+\//)).toThrow(/capture group/);
   });
 
+  it('ids arrive as int (location_id 1468) or string (params.areaId "1468") and must key the same', () => {
+    expect(value(toIdString(1468))).toBe('1468');
+    expect(value(toIdString('1468'))).toBe('1468');
+    expect(value(toIdString('01468'))).toBe('1468'); // constructed: leading zeros never split a key
+    expect(value(toIdString('0'))).toBe('0');
+    expect(value(toIdString('6a607b4c-uuid'))).toBe('6a607b4c-uuid'); // other providers may use non-numeric ids
+    expect(value(toIdString(-1))).toBe('ISSUE');
+    expect(value(toIdString(''))).toBe('ISSUE');
+  });
+
+  it('listing URLs carry the scrape context ?aid=…, which is not part of the restaurant URL', () => {
+    expect(value(stripUrlQuery('https://www.example.com/uae/restaurant/648607/sla-restaurant-and-cafe-al-rowdah?aid=1468'))).toBe(
+      'https://www.example.com/uae/restaurant/648607/sla-restaurant-and-cafe-al-rowdah',
+    );
+  });
+
   it('every normaliser maps null and undefined to null', () => {
-    const fns = [trimCollapse, emptyToNull, toNumber, (v: unknown) => toMinorUnits(v), zeroToNull, parseDurationRange];
+    const fns = [trimCollapse, emptyToNull, toNumber, (v: unknown) => toMinorUnits(v), zeroToNull, parseDurationRange, toIdString, stripUrlQuery];
     for (const fn of fns) {
       expect(fn(null)).toEqual({ ok: true, value: null });
       expect(fn(undefined)).toEqual({ ok: true, value: null });

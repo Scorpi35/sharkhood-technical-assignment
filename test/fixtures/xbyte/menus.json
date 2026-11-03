@@ -1,0 +1,662 @@
+[
+  {
+    "_id": {
+      "$oid": "6a607b4ca08982f2261e393e"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/790793/daima-downtown-burj-khalifa?aid=1280",
+    "params": {
+      "restaurant_url": "https://www.talabat.com/uae/restaurant/790793/daima-downtown-burj-khalifa?aid=1280"
+    },
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/790793/daima-downtown-burj-khalifa?aid=1280",
+        "request_time": "2026-07-22 01:11:54.867105",
+        "request_process_time": "1.0793876647949219",
+        "statusCode": 200
+      },
+      "Message": "This is not restaurant page (Talabat)."
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-07-22T08:11:56.235Z"
+    },
+    "updatedAt": {
+      "$date": "2026-07-22T08:11:56.235Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a607b4ca08982f2261e3948"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/34858/quick-burger-al-safa-park?aid=1280",
+    "params": {
+      "restaurant_url": "https://www.talabat.com/uae/restaurant/34858/quick-burger-al-safa-park?aid=1280"
+    },
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/34858/quick-burger-al-safa-park?aid=1280",
+        "request_time": "2026-07-22 01:11:55.088521",
+        "request_process_time": "0.9713630676269531",
+        "statusCode": 200
+      },
+      "results": [
+        {
+          "id": 19770,
+          "name": "Quick Burger",
+          "logo": "https://images.deliveryhero.io/image/talabat/restaurants/logo_(1)_636940869602585447.jpg?width=180",
+          "latitude": "25.179146290963214",
+          "longitude": "55.24161061023747",
+          "rate": 4.5,
+          "totalReviews": 0,
+          "totalRatings": 100,
+          "deliveryFee": "9",
+          "DeliveryTime": "25-40 mins",
+          "Minimum Order": 0,
+          "Restaurant Address": "Business Bay",
+          "City": "Dubai",
+          "Contact": "00000-00000",
+          "outletCode": 34858,
+          "category": [
+            {
+              "category_id": 2796833705,
+              "category_name": "Picks for you 🔥",
+              "items": [
+                {
+                  "item_id": 2796833695,
+                  "item_name": "Classic Hotdog",
+                  "description": "Chicken hotdog with Mustard, Ketchup, Mayonnaise, Red Onions and Pickles",
+                  "price": 29,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/EDBC88E74EED6B979A8045FBE1DA94F8"
+                },
+                {
+                  "item_id": 2796833671,
+                  "item_name": "Bacon Burger Meal",
+                  "description": "Beef Burger Patty with Beef Bacon, Tomato, Lettuce, Red Onion, Mayonnaise and Cheese. With French Fries and Choice of Soft Drinks on the side",
+                  "price": 49,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/803138FA26616D250BC56EC5A353B2E5"
+                },
+                {
+                  "item_id": 2796833908,
+                  "item_name": "Beef Bacon",
+                  "description": "",
+                  "price": 8,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/7599BDF79679F9CDB947CD7DB60092A6"
+                },
+                {
+                  "item_id": 2796833703,
+                  "item_name": "Potato Wedges",
+                  "description": "",
+                  "price": 21,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/1A5F3487B180F3C32E9A07DA414C5659"
+                },
+                {
+                  "item_id": 2796833694,
+                  "item_name": "New York Hotdog",
+                  "description": "Comes with Chicken Hotdog, Mozzarella Cheese, Onions, Tomato, Mustard and Philly Sauce (Tomato Slice 4, Grilled Red Onions, Hotdog, Phila Sauce, Mozarella Shredded and Mustard",
+                  "price": 29,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/95A473CB22A2E092FD5C68FDE4853BD2"
+                },
+                {
+                  "item_id": 2796833705,
+                  "item_name": "Chicken Strips",
+                  "description": "5 pcs of Chicken Strips",
+                  "price": 29,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/8AEEEBA005C83069F70587851ED098A4"
+                }
+              ]
+            },
+            {
+              "category_id": 2796833668,
+              "category_name": "Value Combos",
+              "items": [
+                {
+                  "item_id": 2796833662,
+                  "item_name": "Giant Combo",
+                  "description": "Combo comes with 4 Quick Chicken Burger + 4 Quick Beef Burger + 1 Traditional Chicken Burger + 1 American Beef Burger + 1 Beef Steak Burger + 4 Portion of French Fries",
+                  "price": 299,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/61E68528581BEF4270B2B1D0D59AB12E"
+                }
+              ]
+            },
+            {
+              "category_id": 2796833682,
+              "category_name": "Burgers Meals",
+              "items": [
+                {
+                  "item_id": 2796833671,
+                  "item_name": "Bacon Burger Meal",
+                  "description": "Beef Burger Patty with Beef Bacon, Tomato, Lettuce, Red Onion, Mayonnaise and Cheese. With French Fries and Choice of Soft Drinks on the side",
+                  "price": 49,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/803138FA26616D250BC56EC5A353B2E5"
+                },
+                {
+                  "item_id": 2796833673,
+                  "item_name": "Traditional Chicken Burger Meal",
+                  "description": "Fried Breaded Chicken Breast with Tomato, Pickles, Red Onion, Cocktails Sauce and Cheese. With French Fries and Choice of Soft Drinks on the side",
+                  "price": 47,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/BCF3040B974651032666CEB9FAFBE670"
+                }
+              ]
+            },
+            {
+              "category_id": 2796833696,
+              "category_name": "Hotdogs",
+              "items": [
+                {
+                  "item_id": 2796833694,
+                  "item_name": "New York Hotdog",
+                  "description": "Comes with Chicken Hotdog, Mozzarella Cheese, Onions, Tomato, Mustard and Philly Sauce (Tomato Slice 4, Grilled Red Onions, Hotdog, Phila Sauce, Mozarella Shredded and Mustard",
+                  "price": 29,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/95A473CB22A2E092FD5C68FDE4853BD2"
+                },
+                {
+                  "item_id": 2796833695,
+                  "item_name": "Classic Hotdog",
+                  "description": "Chicken hotdog with Mustard, Ketchup, Mayonnaise, Red Onions and Pickles",
+                  "price": 29,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/EDBC88E74EED6B979A8045FBE1DA94F8"
+                },
+                {
+                  "item_id": 2796833692,
+                  "item_name": "Bacon Hotdog",
+                  "description": "Comes with Chicken Hotdog, Beef Bacon Bits, Red Onion, American Pickles, Capsicum, Grilled Tomato, Crushed Chili and Avocado Sauce",
+                  "price": 29,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/9CB40783CEEA6363AC37322423E99F58"
+                }
+              ]
+            },
+            {
+              "category_id": 2796833705,
+              "category_name": "Bites",
+              "items": [
+                {
+                  "item_id": 2796833703,
+                  "item_name": "Potato Wedges",
+                  "description": "",
+                  "price": 21,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/1A5F3487B180F3C32E9A07DA414C5659"
+                },
+                {
+                  "item_id": 2796833705,
+                  "item_name": "Chicken Strips",
+                  "description": "5 pcs of Chicken Strips",
+                  "price": 29,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/8AEEEBA005C83069F70587851ED098A4"
+                },
+                {
+                  "item_id": 2796833702,
+                  "item_name": "French Fries",
+                  "description": "",
+                  "price": 19,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/EA2CE3596A5718B8C397DACBC56E8DAE"
+                }
+              ]
+            },
+            {
+              "category_id": 2796833917,
+              "category_name": "Extras",
+              "items": [
+                {
+                  "item_id": 2796833908,
+                  "item_name": "Beef Bacon",
+                  "description": "",
+                  "price": 8,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/7599BDF79679F9CDB947CD7DB60092A6"
+                },
+                {
+                  "item_id": 2796833904,
+                  "item_name": "Beef Patty",
+                  "description": "",
+                  "price": 10,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/A988DCF6CCA1FB16FC61068E4387F0B3"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-07-22T08:11:56.540Z"
+    },
+    "updatedAt": {
+      "$date": "2026-07-22T08:11:56.540Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a607edba08982f2261e5d76"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/749293/tajouj-restaurant-corniche-deira?aid=1280",
+    "params": {
+      "restaurant_url": "https://www.talabat.com/uae/restaurant/749293/tajouj-restaurant-corniche-deira?aid=1280"
+    },
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/749293/tajouj-restaurant-corniche-deira?aid=1280",
+        "request_time": "2026-07-22 01:26:57.635741",
+        "request_process_time": "1.8152146339416504",
+        "statusCode": 200
+      },
+      "results": [
+        {
+          "id": 688838,
+          "name": "Tajouj Restaurant ",
+          "logo": "https://images.deliveryhero.io/image/talabat/restaurants/Logo_Attachment_VPI_HRWGS638707235090191013.jpg?width=180",
+          "latitude": "25.26263100636643",
+          "longitude": "55.33215440674572",
+          "rate": 3.2,
+          "totalReviews": 0,
+          "totalRatings": 100,
+          "deliveryFee": "9",
+          "DeliveryTime": "25-40 mins",
+          "Minimum Order": 0,
+          "Restaurant Address": "Deira",
+          "City": "Dubai",
+          "Contact": "00000-00000",
+          "outletCode": 749293,
+          "category": [
+            {
+              "category_id": 943105657,
+              "category_name": "Picks for you 🔥",
+              "items": [
+                {
+                  "item_id": 943105677,
+                  "item_name": "Sudanese Falafel",
+                  "description": "Sudanese falafel with coriander, fennel and sesame sprinkle",
+                  "price": 10,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/sudanese_falafel638708213022381504.jpg"
+                },
+                {
+                  "item_id": 961450050,
+                  "item_name": "Malah Regla ",
+                  "description": "malah Regla is a Sudanese dish ",
+                  "price": 28,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638711581559370292"
+                },
+                {
+                  "item_id": 961773219,
+                  "item_name": "Saltat Aswad ",
+                  "description": "Eggplant cooked in the Sudanese taste",
+                  "price": 20,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638711779552157730"
+                },
+                {
+                  "item_id": 943105655,
+                  "item_name": "Foul With Mesh Fattah ",
+                  "description": "mix foul with bread by sudanese taste and sudanese mesh",
+                  "price": 24.5,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/foul_with_mesh_fattah638708208018248184.jpg"
+                },
+                {
+                  "item_id": 961450032,
+                  "item_name": "Dakwa Salad ",
+                  "description": "Sudanese peanut paste with chopped salad in small pieces and limon syrup",
+                  "price": 17,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638711581137118676"
+                },
+                {
+                  "item_id": 943105657,
+                  "item_name": "Foul Maslah ",
+                  "description": "فول سوداني بالسلطة وطعم التاجوج",
+                  "price": 18.9,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/749293/product/943105657/663210e3-d060-47a9-a7c3-9382e2783485_original.jpg"
+                }
+              ]
+            },
+            {
+              "category_id": 961773219,
+              "category_name": "hot appetizers",
+              "items": [
+                {
+                  "item_id": 943105655,
+                  "item_name": "Foul With Mesh Fattah ",
+                  "description": "mix foul with bread by sudanese taste and sudanese mesh",
+                  "price": 24.5,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/foul_with_mesh_fattah638708208018248184.jpg"
+                },
+                {
+                  "item_id": 943105657,
+                  "item_name": "Foul Maslah ",
+                  "description": "فول سوداني بالسلطة وطعم التاجوج",
+                  "price": 18.9,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/749293/product/943105657/663210e3-d060-47a9-a7c3-9382e2783485_original.jpg"
+                },
+                {
+                  "item_id": 943105659,
+                  "item_name": "Foul With Cheese",
+                  "description": "Foul with Sudanese cheese - premium Al duwaiem cheese",
+                  "price": 14,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/foul_with_cheese638708207855502950.jpg"
+                },
+                {
+                  "item_id": 943105661,
+                  "item_name": "Boiled Egg",
+                  "description": "Boiled egg with sause and fennel",
+                  "price": 8,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/749293/product/943105661/215fd81d-20dd-4d6f-b36e-be59967bccad_original.jpg"
+                },
+                {
+                  "item_id": 943105665,
+                  "item_name": "Fried Eggs With Cheese",
+                  "description": "",
+                  "price": 13,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/749293/product/943105665/afb0dbdf-d664-49ce-8b16-387db31a5920_original.jpg"
+                },
+                {
+                  "item_id": 943105669,
+                  "item_name": "Lentil Fattah With Salat",
+                  "description": "Lentil fattah with Sudanese salat ",
+                  "price": 15,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/749293/product/943105669/8092a712-c86b-49ed-bc48-e8a8814e9a87_original.jpg"
+                },
+                {
+                  "item_id": 943105671,
+                  "item_name": "Egg Shakshuka ",
+                  "description": "Eggs cooked in sudanese style",
+                  "price": 11,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/egg_shakshuka638708207470683110.jpg"
+                },
+                {
+                  "item_id": 943105677,
+                  "item_name": "Sudanese Falafel",
+                  "description": "Sudanese falafel with coriander, fennel and sesame sprinkle",
+                  "price": 10,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/sudanese_falafel638708213022381504.jpg"
+                },
+                {
+                  "item_id": 961450032,
+                  "item_name": "Dakwa Salad ",
+                  "description": "Sudanese peanut paste with chopped salad in small pieces and limon syrup",
+                  "price": 17,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638711581137118676"
+                },
+                {
+                  "item_id": 961773219,
+                  "item_name": "Saltat Aswad ",
+                  "description": "Eggplant cooked in the Sudanese taste",
+                  "price": 20,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638711779552157730"
+                }
+              ]
+            },
+            {
+              "category_id": 961763379,
+              "category_name": "Main Dishes",
+              "items": [
+                {
+                  "item_id": 943105653,
+                  "item_name": "Tagalia Kisra ",
+                  "description": "Sudanese Kisra with mincer meat sause",
+                  "price": 29,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/tagalia638708213111054499.jpg"
+                },
+                {
+                  "item_id": 943105676,
+                  "item_name": "Kisra Neaymeia",
+                  "description": "Sudanese kasra in Al Nuaimiya salt",
+                  "price": 30,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/naeemiyah638708210091782342.jpg"
+                },
+                {
+                  "item_id": 961450050,
+                  "item_name": "Malah Regla ",
+                  "description": "malah Regla is a Sudanese dish ",
+                  "price": 28,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638711581559370292"
+                },
+                {
+                  "item_id": 961763379,
+                  "item_name": "Mafrooka Okra Kisra ",
+                  "description": "كسرة سودانية مع مــلاح البامية مفروكة الطازجة",
+                  "price": 30,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638711769614469877"
+                }
+              ]
+            },
+            {
+              "category_id": 2307234608,
+              "category_name": "Drinks",
+              "items": [
+                {
+                  "item_id": 961825760,
+                  "item_name": "Hibiscus Juice",
+                  "description": "Sudanese hibiscus juice",
+                  "price": 10,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638711798189300272"
+                },
+                {
+                  "item_id": 961833536,
+                  "item_name": "Water",
+                  "description": "Mineral water",
+                  "price": 2,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638717672893810277"
+                },
+                {
+                  "item_id": 1013400232,
+                  "item_name": "7up",
+                  "description": "Soft drink",
+                  "price": 5,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638741085733177878"
+                },
+                {
+                  "item_id": 1013400296,
+                  "item_name": "Pepsi Diet",
+                  "description": "Pepsi diet drink",
+                  "price": 5,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638741088773336964"
+                },
+                {
+                  "item_id": 1013400349,
+                  "item_name": "Mounten Dew ",
+                  "description": "Mounten dew drink",
+                  "price": 5,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638741089089231338"
+                },
+                {
+                  "item_id": 1108505059,
+                  "item_name": "Pepsi 300 ML",
+                  "description": "Soda drink",
+                  "price": 5,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638741089539173807"
+                },
+                {
+                  "item_id": 2307234608,
+                  "item_name": "تابالدي",
+                  "description": "عصير السوداني مصنوع من مكونات سودانية وهو مشروب تقليدي.",
+                  "price": 10,
+                  "rating": 0,
+                  "image": null
+                }
+              ]
+            },
+            {
+              "category_id": 1108459089,
+              "category_name": "Sandwich ",
+              "items": [
+                {
+                  "item_id": 1108459089,
+                  "item_name": "Fried Eggs Sandwich",
+                  "description": "Fresh Fried Eggs Sandwich",
+                  "price": 6,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/talabat/MenuItems/mmw_638741071431625930"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-07-22T08:27:07.552Z"
+    },
+    "updatedAt": {
+      "$date": "2026-07-22T08:27:07.552Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "6a607b52a08982f2261e39dd"
+    },
+    "domain": "talabat",
+    "endpoint": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/708121/koobideh-fusion?aid=1280",
+    "params": {
+      "restaurant_url": "https://www.talabat.com/uae/restaurant/708121/koobideh-fusion?aid=1280"
+    },
+    "payload": {
+      "request_log": {
+        "requests_url": "https://xb-3748-restaurants-dataapi.xbyteapi.com/restaurant_menu/?api_key=REDACTED&domain=talabat&restaurant_url=https://www.talabat.com/uae/restaurant/708121/koobideh-fusion?aid=1280",
+        "request_time": "2026-07-22 01:11:59.232377",
+        "request_process_time": "2.073439359664917",
+        "statusCode": 200
+      },
+      "results": [
+        {
+          "id": 664815,
+          "name": "Koobideh Fusion",
+          "logo": "https://images.deliveryhero.io/image/talabat/restaurants/Koobideh_Logo638240535422026292.jpg?width=180",
+          "latitude": "25.157688111539898",
+          "longitude": "55.29507594232819",
+          "rate": 4.1,
+          "totalReviews": 0,
+          "totalRatings": 100,
+          "deliveryFee": "9",
+          "DeliveryTime": "30-45 mins",
+          "Minimum Order": 1,
+          "Restaurant Address": "Nad Al Sheba 1",
+          "City": "Dubai",
+          "Contact": "00000-00000",
+          "outletCode": 708121,
+          "category": [
+            {
+              "category_id": 2583617858,
+              "category_name": "Offers",
+              "items": [
+                {
+                  "item_id": 2692398683,
+                  "item_name": "Lamb Sulemani Karahi Half",
+                  "description": "Slow cooked lamb in a rich gravy, seasoned with salt and black pepper for a melt in your mouth experience",
+                  "price": 50.80000076293945,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/708121/PRODUCT/550ddf0c-aaac-4b4e-9659-8b6f60b3e9f2.jpg"
+                },
+                {
+                  "item_id": 2692445738,
+                  "item_name": "Lamb Sulemani Karahi Full",
+                  "description": "Slow cooked lamb in a rich gravy, seasoned with salt and black pepper for a melt in your mouth experience",
+                  "price": 90.70000305175782,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/708121/PRODUCT/156186e9-646c-45a7-bbba-af99ea89e990.jpg"
+                },
+                {
+                  "item_id": 2583617858,
+                  "item_name": "Tomato sauce ",
+                  "description": "Rich and flavorful tomato sauce made from ripe tomatoes and aromatic herbs Perfect as an addition to your favorite dishes",
+                  "price": 0.5,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/708121/PRODUCT/431a51c5-8338-4e9f-a928-4a45946864b6.jpg"
+                }
+              ]
+            },
+            {
+              "category_id": 2692445738,
+              "category_name": "Karahi ",
+              "items": [
+                {
+                  "item_id": 2692398683,
+                  "item_name": "Lamb Sulemani Karahi Half",
+                  "description": "Slow cooked lamb in a rich gravy, seasoned with salt and black pepper for a melt in your mouth experience",
+                  "price": 50.80000076293945,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/708121/PRODUCT/550ddf0c-aaac-4b4e-9659-8b6f60b3e9f2.jpg"
+                },
+                {
+                  "item_id": 2692445738,
+                  "item_name": "Lamb Sulemani Karahi Full",
+                  "description": "Slow cooked lamb in a rich gravy, seasoned with salt and black pepper for a melt in your mouth experience",
+                  "price": 90.70000305175782,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/708121/PRODUCT/156186e9-646c-45a7-bbba-af99ea89e990.jpg"
+                }
+              ]
+            },
+            {
+              "category_id": 2583617858,
+              "category_name": "Add On",
+              "items": [
+                {
+                  "item_id": 2583617858,
+                  "item_name": "Tomato sauce ",
+                  "description": "Rich and flavorful tomato sauce made from ripe tomatoes and aromatic herbs Perfect as an addition to your favorite dishes",
+                  "price": 0.5,
+                  "rating": 0,
+                  "image": "https://images.deliveryhero.io/image/global-menu-service/TB_AE/vendor/708121/PRODUCT/431a51c5-8338-4e9f-a928-4a45946864b6.jpg"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "statusCode": 200,
+    "createdAt": {
+      "$date": "2026-07-22T08:12:02.309Z"
+    },
+    "updatedAt": {
+      "$date": "2026-07-22T08:12:02.309Z"
+    },
+    "__v": 0
+  }
+]

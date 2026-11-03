@@ -20,7 +20,7 @@ const menuRestaurant = {
   DeliveryTime: '25-40 mins',
   Contact: '00000-00000',
   'Restaurant Address': 'Al Karama',
-  url: 'https://www.talabat.com/uae/restaurant/757815/bombay-box-oud-metha?aid=1280',
+  url: 'https://www.example.com/uae/restaurant/757815/bombay-box-oud-metha?aid=1280',
 };
 
 const mapping: FieldMapping[] = [
@@ -71,7 +71,7 @@ describe('mapping interpreter', () => {
   it('rejects an unknown transform name when the adapter registers', () => {
     const adapter: ProviderAdapter = {
       provider: 'fake',
-      platform: 'talabat',
+      platform: 'example',
       sources: [
         {
           rawCollection: 'fake_menus',

@@ -1,6 +1,6 @@
 # src/core: provider-agnostic pipeline
 
-Pure contracts, runner and ports. No xbyte, Mongo or BullMQ here (lint-enforced).
+Pure contracts, runner and ports. No provider-specific code, Mongo or BullMQ here (lint-enforced).
 `runPipeline(raw, adapter)` runs validate → normalise → map per document, then dedupes the batch ("newest sourceTs wins").
 
 **Adding a provider** (code goes in `src/providers/<name>/`, never in core):

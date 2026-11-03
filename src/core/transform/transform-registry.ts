@@ -5,7 +5,9 @@ import {
   extractUrlSegment,
   parseDurationRange,
   placeholderToNull,
+  stripUrlQuery,
   toGeoPoint,
+  toIdString,
   toMinorUnits,
   toNumber,
   trimCollapse,
@@ -23,6 +25,8 @@ export const BUILTIN_TRANSFORMS: Readonly<Record<string, Transform>> = Object.fr
   toMinorUnits: (v: unknown) => toMinorUnits(v),
   zeroToNull,
   parseDurationRange,
+  toIdString,
+  stripUrlQuery,
   /** Expects the mapping to read two paths: from: ['lat path', 'lng path']. */
   toGeoPoint: (v: unknown) =>
     Array.isArray(v) && v.length === 2

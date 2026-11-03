@@ -126,6 +126,33 @@ export function extractUrlSegment(url: unknown, pattern: RegExp): Normalised<str
   return ok(m[1]);
 }
 
+/**
+ * Canonical external-id string: safe non-negative integers and digit strings
+ * become decimal without leading zeros (1468, "1468", "01468" -> "1468"); other
+ * non-blank strings (e.g. UUIDs) are kept trimmed. Anything else is an issue.
+ */
+export function toIdString(value: unknown): Normalised<string> {
+  if (isNil(value)) return ok(null);
+  if (typeof value === 'number') {
+    return Number.isSafeInteger(value) && value >= 0 ? ok(String(value)) : invalid(`expected a non-negative integer id, got ${value}`);
+  }
+  if (typeof value === 'string') {
+    const s = value.trim();
+    if (s === '') return invalid('expected an id, got a blank string');
+    return ok(/^\d+$/.test(s) ? s.replace(/^0+(?=\d)/, '') : s);
+  }
+  return invalid(`expected an id, got ${typeof value}`);
+}
+
+/** URL without its query string and fragment ("…/slug?aid=1468" -> "…/slug"). */
+export function stripUrlQuery(value: unknown): Normalised<string> {
+  if (isNil(value)) return ok(null);
+  if (typeof value !== 'string') return invalid(`expected a URL string, got ${typeof value}`);
+  const s = value.trim();
+  if (s === '') return ok(null);
+  return ok(s.replace(/[?#].*$/, ''));
+}
+
 // ------------------------------------------------------------------ pattern guards
 
 /** /g and /y regexes carry lastIndex between calls: stateful, so impure. Rejected up front. */

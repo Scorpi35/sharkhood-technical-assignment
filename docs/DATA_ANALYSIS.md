@@ -128,7 +128,7 @@ Category and item:
 | `items[].item_id` | int | 31,102 rows reduce to 28,773 unique. No id is shared across restaurants. |
 | `items[].item_name` | string | |
 | `items[].description` | string | Empty on 2,071 rows |
-| `items[].price` | int \| float | 27,322 int and 3,780 float. 0–1,350. 1,985 zeros. 811 with float32 noise (`50.80000076293945`). |
+| `items[].price` | int \| float | 27,322 int and 3,780 float. 0–1,350. 1,985 zero rows (1,859 unique items). 811 with float32 noise (`50.80000076293945`). |
 | `items[].rating` | int | 0–5. **0 on 28,798 rows (92.6%)**, which means "unrated". |
 | `items[].image` | string \| null | null on 1,631 rows |
 
@@ -138,7 +138,7 @@ Category and item:
 
 | From | To | Join | Notes |
 |---|---|---|---|
-| `locations.results[].location_id` (int) | `restaurants.params.areaId` (**string**) | `location_id = Number(areaId)` | Both listing areas exist in locations: 1468 = Al Zaab, 1461 = Al Rowdah. |
+| `locations.results[].location_id` (int) | `restaurants.params.areaId` (**string**) | both keyed as the canonical id string: `"1468"` | Both listing areas exist in locations: 1468 = Al Zaab, 1461 = Al Rowdah. |
 | `locations.results[].location_id` | URL `aid` (listings and menus) | `location_id = aid` | 1280 = Dubai World Trade Center (DWTC), the menu **scrape context**. |
 | Listing URL `/restaurant/{outletId}/…` | `menus.results[0].outletCode` | `outletId = outletCode` | Same identifier as the menu's own URL id (345/345). |
 | `menus.results[0].id` | (nothing) | | A **different** identifier, the provider vendor id. Kept as `vendorId`. Never used as a key. |
@@ -154,7 +154,7 @@ flowchart LR
     L["xbyte_raw_locations<br/>location_id (int)"]
     R["xbyte_raw_restaurants<br/>params.areaId (string)<br/>URL outletId"]
     M["xbyte_raw_menus<br/>outletCode = URL outletId<br/>id = vendor id"]
-    L -- "location_id = Number(areaId)" --> R
+    L -- "String(location_id) = areaId" --> R
     R -- "outletId = outletCode<br/>(0 matches in sample)" --> M
     L -. "aid=1280 (DWTC)<br/>scrape context only" .-> M
 ```
@@ -195,16 +195,16 @@ Quarantine excerpts never include `endpoint` or `requests_url`.
 
 | Anomaly | Evidence | Handling |
 |---|---|---|
-| `areaId` is a string, `location_id` an int | `"1468"` vs `1468` | **normalise**: `Number(areaId)`. A non-numeric value is a `DocumentError`, so **quarantine**. |
+| `areaId` is a string, `location_id` an int | `"1468"` vs `1468` | **normalise**: every external id is keyed as a canonical string (`toIdString`: `1468`, `"1468"` and `"01468"` all become `"1468"`). A non-numeric value fails schema validation, so **quarantine**. |
 | Only 2 areas listed | 2 of the 697 locations have listing pages: al-zaab (54 docs), al-rowdah (16 docs) | **ignore**: coverage is recorded only where observed. Areas without listings simply have no `restaurant_areas` rows; nothing is inferred. |
 | Unstable pagination | 18 of 33 `(area, page)` pairs fetched more than once (up to 4×); **all 18 differ between fetches** | Every row is an *observation*. Coverage is the **union** over all fetches, with `firstSeenAt`/`lastSeenAt` taken as min/max `sourceTs`. Absence from a page never means "removed". |
 | `"Total Page"` meaningless | 227 for both areas; the sampled pages only reach page 18 (al-zaab) and 13 (al-rowdah) | **ignore** |
-| "Page limit exceeded" page | 1 doc: `{"Total Page":1,"Page Error Message":"Page limit exceeded.","results":[]}` | **quarantine** (reason: provider page error) |
-| Empty `{"error":""}` page | 1 doc, no results | **quarantine** (reason: provider error) |
+| "Page limit exceeded" page | 1 doc: `{"Total Page":1,"Page Error Message":"Page limit exceeded.","results":[]}` | **quarantine** (`PROVIDER_ERROR`; detected before schema validation) |
+| Empty `{"error":""}` page | 1 doc, no results | **quarantine** (`PROVIDER_ERROR`). A page with no results and no error marker is `EMPTY_PAYLOAD`. |
 | Short pages mid-sequence | Page 1 returned 14 rows (al-zaab, 2 fetches) and 8 rows (al-rowdah), against the usual 15 | **ignore** (not an error; the union over fetches absorbs it) |
 | Same restaurant in both areas | 1,011 rows reduce to 302 unique outlets; 161 appear in both areas | **dedupe** restaurants on outlet id. Coverage is M:N in `restaurant_areas`. |
 | Listing means "delivers to", not "located in" | URL slug ends with the listing area in only 15/1,011 rows. 698 end with a *different* known area, e.g. `…/648607/sla-restaurant-and-cafe-al-rowdah?aid=1468` listed under Al Zaab. | Model as coverage (`restaurant_areas`). Never derive a restaurant's location from the listing area or slug. |
-| Id only inside the URL | `/restaurant/{outletId}/{slug}?aid={areaId}`; 1,011/1,011 parse | **normalise**: parse the URL. An unparseable URL is a `DocumentError`, so **quarantine** (0 in the sample). |
+| Id only inside the URL | `/restaurant/{outletId}/{slug}?aid={areaId}`; 1,011/1,011 parse | **normalise**: parse the URL. An unparseable URL drops **that row only** (record-level `SCHEMA_INVALID` at `payload.results[i].restaurant_url`); the rest of the page is still written (0 in the sample). |
 | Country only in the URL | Segment `uae` on 1,011/1,011 listing URLs and 500/500 menu URLs | **normalise**: map country to currency (`uae` → `AED`). An unmapped country is a `DocumentError`, so **quarantine**; a currency is never guessed. |
 | Names are not identities | 290 distinct names for 302 outlets; 9 names belong to several outlets, e.g. "Otantik Cafe & Restaurant" ×3 | Never key or dedupe on name |
 | Messy name text | Over 290 distinct names: 5 have leading or trailing whitespace and 6 double spaces. 4 contain non-ASCII: `Vasanta Bhavan، Madinat Zayed` (Arabic comma), `Awani – Middle Eastern Flavors` (en dash), `Adnoc Oasis Café`, `Hazzaa Speciality Café` | **normalise** whitespace only. Unicode punctuation and accents are kept as-is (§6). |
@@ -232,11 +232,11 @@ Quarantine excerpts never include `endpoint` or `requests_url`.
 | Empty menus | 16 menus have 0 categories | Kept: the restaurant is written, and the menu is stored with `categories: []`. Not an error. |
 | "Picks for you 🔥" is synthetic | 256 menus, one Picks category each | **normalise**: items become `isFeatured: true` and are listed in `menus.featuredItemIds`. Picks is **not** stored as a category (§6). |
 | `category_id` collides with Picks | Picks shares its id with a real category in **37** menus, e.g. 2796833705 is both "Picks for you 🔥" and "Bites" (outlet 34858) | Resolved by not storing Picks as a category |
-| `category_id` collides between real categories | **23** menus, e.g. outlet 708121: "Offers" and "Add On" are both 2583617858 | Category identity inside a menu is its **position**; `categoryId` is kept as provider data. See §8 for the effect on `menu_items.categoryIds`. |
+| `category_id` collides between real categories | **23** menus, e.g. outlet 708121: "Offers" and "Add On" are both 2583617858 | **dedupe**: merged into the first category with that id (its name and position win; item lists are unioned in order), with a non-blocking `DUPLICATE_CONFLICT` **warning**. So `categoryId` is unique within a menu and `menu_items.categoryIds` is unambiguous. |
 | Items in several categories | **2,118** items sit in more than one distinct category id (2,266 counting category *entries*, of which 1,473 involve Picks) | **dedupe**: one `menu_items` doc per item, with `categoryIds[]` (distinct). Membership order lives in `menus.categories[].itemIds`. |
 | Repeated item rows | 31,102 rows reduce to 28,773 unique `item_id`s; none shared across restaurants | **dedupe** on `(platform, restaurantExternalId, itemId)`. The key includes the restaurant anyway, so a future cross-restaurant id is safe. |
 | Float32 price noise | 811 prices, e.g. `50.80000076293945` | **normalise**: `priceMinor = Math.round(price * 100)` |
-| Zero prices | 1,985 items | Kept as `priceMinor: 0`, counted as a data-quality warning in run stats (§6) |
+| Zero prices | 1,985 item rows, 1,859 unique items | Kept as `priceMinor: 0`, counted as a data-quality warning in run stats (§6) |
 | Item `rating` 0 means unrated | 28,798 rows (92.6%) | **normalise**: `rating: null` when 0 |
 | Missing images and descriptions | `image: null` on 1,631; empty `description` on 2,071 | **normalise**: `imageUrl: null`; an empty description becomes `null` |
 
@@ -258,10 +258,41 @@ is what makes two runs over the same raw data produce an identical target state.
 | Collection | Natural key (unique index) | Owns | Notes |
 |---|---|---|---|
 | `areas` | `(platform, externalId)` ← `location_id` | name, slug | Slug gets a non-unique index |
-| `restaurants` | `(platform, externalId)` ← outletCode / URL id | name, slug, url, vendorId, geo, rating, delivery terms, address, logo | Written by **two sources with disjoint field ownership** (see T06 and §8) |
+| `restaurants` | `(platform, externalId)` ← outletCode / URL id | listing.{name, url}, slug, country, name, vendorId, logoUrl, geo, rating, delivery, address, contact | Written by **two sources with disjoint field ownership** (table below) |
 | `restaurant_areas` | `(platform, restaurantExternalId, areaExternalId)` | firstSeenAt, lastSeenAt | Unbounded M:N, so it gets its own collection rather than an embedded array |
 | `menus` | `(platform, restaurantExternalId)` | ordered categories `{categoryId, name, position, itemIds[]}`, `featuredItemIds[]` | Embedding is bounded (about 12 categories of id refs) |
 | `menu_items` | `(platform, restaurantExternalId, itemId)` | name, description, priceMinor, currency, rating, imageUrl, categoryIds[], isFeatured, isAvailable | First-class: largest volume, queried independently |
+
+**Field ownership on `restaurants`.** Both sources upsert the same document, so
+every field has exactly one owner and the sources never overwrite each other.
+The listing name lives in `listing.name`, separate from the menu's `name`.
+Mirrors the comment table in `src/providers/xbyte/mappings.ts`:
+
+| Field | Owner | From |
+|---|---|---|
+| `listing.name`, `listing.url` | `xbyte_raw_restaurants` | `restaurant_name`; `restaurant_url` with the query string stripped |
+| `slug`, `country` | `xbyte_raw_restaurants` | `restaurant_url` path |
+| `name` | `xbyte_raw_menus` | `name` |
+| `vendorId` | `xbyte_raw_menus` | `id` (not the outlet id) |
+| `logoUrl` | `xbyte_raw_menus` | `logo` |
+| `geo` | `xbyte_raw_menus` | `latitude`, `longitude` |
+| `rating.{value, count, countIsLowerBound}` | `xbyte_raw_menus` | `rate` (0 → null), `totalRatings` (1000 = capped) |
+| `delivery.{feeMinor, minMinutes, maxMinutes, minimumOrderMinor, currency}` | `xbyte_raw_menus` | `deliveryFee`, `DeliveryTime`, `Minimum Order`, URL country |
+| `address.{area, city}` | `xbyte_raw_menus` | `Restaurant Address`, `City` |
+| `contact` | `xbyte_raw_menus` | `Contact` (placeholder → null) |
+
+**Ids are strings.** Every external id (`externalId`, `restaurantExternalId`,
+`areaExternalId`, `itemId`, `categoryId`, `vendorId`) is a canonical string
+(`"1468"`). The sources mix ints and numeric strings, and other providers may
+use non-numeric ids.
+
+**Failure granularity.**
+- A provider error page, an empty payload or a schema violation rejects the
+  whole raw document.
+- A bad element (an unparseable listing URL, an unmappable item) drops only
+  that record; a dropped item is also removed from its menu's id lists, so no
+  reference dangles.
+- Repairs (merged categories) are **warnings**: reported, and the record is written.
 
 Value rules that apply across collections:
 - Money is integer minor units (`priceMinor = Math.round(price * 100)`), and `currency: "AED"` is derived from the `uae` URL segment through the country mapping.
@@ -280,43 +311,45 @@ erDiagram
 
     areas {
         string platform PK "talabat"
-        int externalId PK "location_id"
+        string externalId PK "location_id"
         string name
         string slug "non-unique index"
         object source
     }
     restaurants {
         string platform PK "talabat"
-        int externalId PK "outletCode = URL outletId"
-        int vendorId "menus payload id"
-        string name
-        string slug
-        string url "aid stripped"
+        string externalId PK "outletCode = URL outletId"
+        object listing "name, url (listing-owned)"
+        string slug "listing-owned"
+        string country "listing-owned"
+        string name "menu-owned"
+        string vendorId "menus payload id"
         object geo "GeoJSON Point, 2dsphere"
         object rating "value, count, countIsLowerBound"
-        object delivery "feeMinor, minMinutes, maxMinutes, minimumOrderMinor"
+        object delivery "feeMinor, minMinutes, maxMinutes, minimumOrderMinor, currency"
         object address "area, city"
-        string logo
+        string logoUrl
+        string contact "nullable"
         object source
     }
     restaurant_areas {
         string platform PK
-        int restaurantExternalId PK, FK
-        int areaExternalId PK, FK
+        string restaurantExternalId PK, FK
+        string areaExternalId PK, FK
         date firstSeenAt "min sourceTs"
         date lastSeenAt "max sourceTs"
     }
     menus {
         string platform PK
-        int restaurantExternalId PK, FK
+        string restaurantExternalId PK, FK
         array categories "categoryId, name, position, itemIds"
         array featuredItemIds "from Picks for you"
         object source
     }
     menu_items {
         string platform PK
-        int restaurantExternalId PK, FK
-        int itemId PK
+        string restaurantExternalId PK, FK
+        string itemId PK
         string name
         string description "nullable"
         int priceMinor
@@ -382,7 +415,7 @@ with `platform: "talabat"`. A second provider scraping the same platform
 converges on the same restaurants and items instead of creating parallel
 copies. Which provider wrote a document is recorded in `source.provider`.
 
-**Zero prices are kept, not dropped.** 1,985 items cost 0. On a delivery
+**Zero prices are kept, not dropped.** 1,985 item rows (1,859 unique items) cost 0. On a delivery
 platform that usually means "price set on options or variants". Dropping them
 would delete real menu items, and inventing a price is worse. They are stored
 as `priceMinor: 0` and counted as a data-quality warning in run stats, so the
@@ -452,20 +485,18 @@ loading a collection, or even a large batch, into memory:
 
 ## 8. Open questions (for T06/T07)
 
-These came up in profiling. The decision belongs to the implementing ticket.
+These came up in profiling. The decision belongs to the implementing ticket;
+resolved ones are kept, struck through, for the record.
 This document will be re-checked against the code at T13.
 
-1. **Ambiguous `categoryIds`.** In 23 menus, two real categories share a
-   `category_id`, e.g. "Offers" and "Add On". `menus.categories` stays correct
-   because it is ordered by `position`. But `menu_items.categoryIds` cannot tell
-   the two apart, so "items in category 2583617858" returns both. Options:
-   accept and document it (the current proposal: rare and provider-caused),
-   or key categories as `categoryId#position`.
-2. **Fields both sources can supply.** Listings and menus both carry name,
-   slug and URL. Ownership must be disjoint for everything else: menus own
-   vendorId, geo, rating, delivery terms, address and logo. With zero overlap
-   in the sample, a menu-only restaurant still needs a name. Proposal: both
-   sources may write `name`/`slug`/`url`, under the `sourceTs` rule from §6.
+1. ~~**Ambiguous `categoryIds`.**~~ **Resolved in T06.** Real categories
+   that share a `category_id` are merged into the first (its name and position
+   win; item lists are unioned), with a `DUPLICATE_CONFLICT` warning. So
+   `categoryId` is unique within a menu, and `menu_items.categoryIds` is unambiguous.
+2. ~~**Fields both sources can supply.**~~ **Resolved in T06.** The listing's
+   name and URL go to `listing.name` / `listing.url`, separate from the menu's
+   `name`. Every field now has exactly one owner (§4), so no `sourceTs`
+   arbitration between the two sources is needed.
 3. **Items that disappear from a newer menu snapshot.** The source has no
    availability field, so every item in a snapshot is `isAvailable: true`.
    Proposal: an item missing from a newer snapshot of the same menu is set to

@@ -2,6 +2,9 @@ import { MappingError, validateMapping } from '../transform/mapping-interpreter'
 import { DEFAULT_TRANSFORMS } from '../transform/transform-registry';
 import type { ProviderAdapter, SourceHandler } from './provider-adapter';
 
+/** DI token for the application's ProviderRegistry (built from every provider module). */
+export const PROVIDER_REGISTRY = Symbol('ProviderRegistry');
+
 export interface ResolvedSource {
   readonly adapter: ProviderAdapter;
   readonly handler: SourceHandler;
